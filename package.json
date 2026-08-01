@@ -1,0 +1,27 @@
+{
+    "name": "rightweak",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "assets": "node scripts/asset-copy.mjs && node scripts/icons.mjs",
+        "smoke": "node scripts/fixtures.mjs && node scripts/smoke.mjs",
+        "dev": "npm run assets && vite",
+        "build": "npm run assets && vite build",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@ffmpeg/core": "^0.12.10",
+        "@ffmpeg/ffmpeg": "^0.12.15",
+        "@ffmpeg/util": "^0.12.2",
+        "@imgly/background-removal": "1.4.5",
+        "@imgly/background-removal-data": "1.4.5",
+        "onnxruntime-web": "1.17.3"
+    },
+    "devDependencies": {
+        "@crxjs/vite-plugin": "^2.7.1",
+        "@types/chrome": "^0.2.5",
+        "typescript": "^7.0.2",
+        "vite": "^8.2.0"
+    }
+}
