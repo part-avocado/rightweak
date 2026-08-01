@@ -5,7 +5,6 @@
     "type": "module",
     "scripts": {
         "assets": "node scripts/asset-copy.mjs && node scripts/icons.mjs",
-        "smoke": "node scripts/fixtures.mjs && node scripts/smoke.mjs",
         "dev": "npm run assets && vite",
         "build": "npm run assets && vite build",
         "typecheck": "tsc --noEmit"
