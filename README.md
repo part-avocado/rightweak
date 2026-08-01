@@ -8,4 +8,4 @@ The default right click menu on Chromium was very unsightly, and was sometimes c
 - Save image as PNG without background, and
 - Copy image as PNG without background.
 
-These are relatively basic features that I find Chromium to not have, so, therefore, Chrome extension! (This is a submission for [Braize](https://braize.hackclub.com).)
+These are relatively basic features that I find Chromium to not have, so, therefore, Chrome extension! (This is a submission for [Braize](https://braize.hackclub.com))
