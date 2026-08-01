@@ -1,0 +1,7 @@
+node_modules/
+public/imgly
+public/ffmpeg
+public/ort
+public.icons
+test/fixtures
+test/shots
