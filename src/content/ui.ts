@@ -245,4 +245,34 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
         menu.style.top = `${Math.max(PAD, Math.min(y, window.innerHeight - h - PAD))}px`
     }
     clamp()
+
+    // shows advanced tools :sparkles:
+    let moreSection: HTMLElement | null = null
+    const expand = () => {
+        if (moreSection || !options.more?.length) return
+        moreSection = document.createElement('div')
+        moreSection.className = 'menu-more'
+        renderEntries(moreSection, ['divider', ...options.more])
+        if (hintEl) menu.insertBefore(moreSection, hintEl)
+        else menu.appendChild(moreSection)
+        if(hintEl && options.expandedHint) setHint(hintEl, options.expandedHint)
+        clamp()
+    }
+    const collapse = () => {
+        if (!moreSection) return
+        moreSection.remove()
+        moreSection = null
+        if (hintEl && options.hint) setHint(hintEl, options.hint)
+        clamp()
+    }
+    const focusables = (): HTMLButtonElement[] =>
+        [...menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')]
+
+    const onPointerDown = (ev: Event) => {
+        if (ev.composedPath().includes(menu)) return
+        ev.preventDefault()
+        ev.stopImmediatePropagation()
+        swallowClickGesture()
+        closeMenu()
+    }
 }
