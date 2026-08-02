@@ -66,3 +66,45 @@ const svg_err = '<svg viewBox="0 0 24 24" class="err" fill="none" stroke-width="
 const svg_x = '<svg viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5 5 19"/></svg>'
 
 // MENU OPTIONS
+
+export interface NavButton {
+    icon:string
+    title:string
+    disabled?: boolean
+    onClick: () => void
+}
+
+export interface PairAction {
+    label: string
+    icon: string
+    disabled?: boolean
+    onClick: () => void
+}
+
+export type MenuEntry = 
+    | 'divider'
+    | {pair: [PairAction, PairAction]}
+    | {
+        label: string
+        icon: string
+        disabled?: boolean
+        sublabel?: string
+        checked?: boolean
+        magic?: boolean
+        onClick?: () => void
+    }
+
+export interface MenuOptions {
+    nav?: NavButton[]
+    entries: MenuEntry[]
+    more?: MenuEntry[]
+    hint?: string
+    expandedHint?: string
+}
+
+let openMenuCleanup: (() => void) | null = null
+
+export function closeMenu(): void {
+    openMenuCleanup?.()
+    openMenuCleanup = null
+}
