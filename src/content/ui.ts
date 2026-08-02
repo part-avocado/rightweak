@@ -304,4 +304,31 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
     const onKeyUp = (ev: KeyboardEvent) => {
         if (ev.key === 'Shift') collapse()
     }
+
+    const blockScroll = (ev: Event) => {
+        if (ev.composedPath().includes(menu)) return
+        if (ev.cancelable) ev.preventDefault()
+    }
+    const onHide = () => closeMenu()
+    
+    window.addEventListener('pointerdown', onPointerDown, true)
+    window.addEventListener('keydown', onKey, true)
+    window.addEventListener('keyup', onKeyUp, true)
+    window.addEventListener('wheel', blockScroll, {capture: true, passive:false})
+    window.addEventListener('touchmove', blockScroll, {capture:true, passive:false})
+    window.addEventListener('scroll', onHide, {capture:true, passive:true})
+    window.addEventListener('resize', onHide)
+    window.addEventListener('blur', onHide)
+
+    openMenuCleanup = () => {
+        window.removeEventListener('pointerdown', onPointerDown, true)
+        window.removeEventListener('keydown', onKey, true)
+        window.removeEventListener('keyup', onKeyUp, true)
+        window.removeEventListener('wheel', blockScroll, {capture: true} as EventListenerOptions)
+        window.removeEventListener('touchmove', blockScroll, {capture: true} as EventListenerOptions)
+        window.removeEventListener('scroll', onHide, {capture:true} as EventListenerOptions)
+        window.removeEventListener('resize', onHide)
+        window.removeEventListener('blur', onHide)
+        wrap.remove()
+    }
 }
