@@ -258,3 +258,12 @@ async function fetchBlob(url:string,jobId:string,stage:string): Promise<Blob> {
     const type = res.headers.get('content-type')?.split(';')[0]?.trim() ?? ''
     return new Blob(parts, {type})
 }
+
+async function deliverBlob(blob: Blob, deliver: 'dataUrl' | 'blobUrl') {
+    if (deliver === 'blobUrl') {
+        const preview = await makeThumb(blob).catch(() => undefined)
+        return {blobUrl: URL.createObjectURL(blob), preview}
+    }
+    const dataUrl = await blobToDataUrl(blob)
+    return {dataUrl}
+}
