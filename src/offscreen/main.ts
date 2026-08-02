@@ -267,3 +267,14 @@ async function deliverBlob(blob: Blob, deliver: 'dataUrl' | 'blobUrl') {
     const dataUrl = await blobToDataUrl(blob)
     return {dataUrl}
 }
+
+async function makeThumb(blob:Blob): Promise<string> {
+    const bitmap = await createImageBitmap(blob)
+    const scale = Math.min(1, 92/ Math.max(bitmap.width, bitmap.height))
+    const canvas = document.createElement('canvas')
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale))
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale))
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    bitmap.close()
+    return canvas.toDataURL('image/png')
+}
