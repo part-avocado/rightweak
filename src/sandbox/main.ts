@@ -29,3 +29,34 @@ chrome.runtime.onMessage.addListener((msg:OffscreenReq) => {
             break
     }
 })
+
+function emit(ev: OffscreenEvnt): void {
+    void chrome.runtime.sendMessage(ev).catch(() => {})
+}
+
+function report(jobId: string, stage:string, ratio?:number): void {
+    if (!cancelled.has(jobId)) emit({target: 'sw', ev: 'progress', jobId,stage, ratio})
+}
+
+async function guard(jobId: string, work: () => Promise<{dataUrl?:string;blobUrl?:string}>): Promise<void> {
+    const ctl = new AbortController()
+    aborters.set(jobId,ctl)
+    try {
+        const result = await work()
+        if (!cancelled.has(jobId))
+            emit({target:'sw', ev:'result', jobId, ok:true, ...result})
+        }
+    } catch (err) {
+        if (!cancelled.has(jobId)) {
+            const message = err instanceof Error ? err.message: String(err)
+            emit({ target: 'sw', ev:'result', jobId, ok: false, error:message})
+        }
+    } finally {
+        aborters.delete(jobId)
+        cancelled.delete(jobid)
+    }
+}
+
+function singalOf(jobId:string): AbortSignal {
+    return aborters.get(jobId)!.signal
+}
