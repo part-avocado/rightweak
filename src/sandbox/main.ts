@@ -60,3 +60,9 @@ async function guard(jobId: string, work: () => Promise<{dataUrl?:string;blobUrl
 function singalOf(jobId:string): AbortSignal {
     return aborters.get(jobId)!.signal
 }
+
+// removal of things
+let sandboxFrame: HTMLIFrameElement | null = null
+let sandboxReady: Promise<window> | null = null
+const sandboxJobs = new Map<string, {resolve: (b:Blob) => void; reject: (e:Error) => void }>()
+
