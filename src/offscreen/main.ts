@@ -1,5 +1,5 @@
 // The dirty work
-import FFmpeg from '@ffmpeg/ffmpeg'
+import { FFmpeg } from '@ffmpeg/ffmpeg'
 import type { OffscreenEvnt,OffscreenReq } from '../shared/protocol'
 import { removeBackground } from '@imgly/background-removal'
 
@@ -14,15 +14,17 @@ chrome.runtime.onMessage.addListener((msg:OffscreenReq) => {
     if (msg?.target !== 'offscreen') return
     switch (msg.op) {
         case 'removebg':
-            void guard(msg.jobId, () => removeBackground(msg.jobId, msg.url, msg.deliver))
+            void guard(msg.jobId, () => removebg(msg.jobId, msg.url, msg.deliver))
             break
         case 'topng':
             void guard(msg.jobId, () => rasterize(msg.jobId, msg.url, msg.deliver))
+            break
         case 'transcode':
             void guard(msg.jobId, () => transcode(msg.jobId, msg.url))
+            break
         case 'cancel':
             cancelled.add(msg.jobId)
-            aborters.get(msg.jobId)?.abort
+            aborters.get(msg.jobId)?.abort()
             sandboxJobs.get(msg.jobId)?.reject(new Error('cancelled'))
             sandboxJobs.delete(msg.jobId)
             if (transcodingJob === msg.jobId) void resetFFmpeg()
@@ -68,11 +70,17 @@ const sandboxJobs = new Map<string, {resolve: (b:Blob) => void; reject: (e:Error
 
 function sandboxWindow(): Promise<Window> {
     if (sandboxReady && sandboxFrame?.isConnected) return sandboxReady
-    sandboxReady = new Promise((resolve, reject) => {
+    sandboxReady = new Promise((resolve,reject) => {
         const frame = document.createElement('iframe')
         frame.style.display = 'none'
         frame.src = sandboxer
-        frame.onload = () => resolve(frame.contentWindow)
+        frame.onload = () => {
+            if (frame.contentWindow) {
+                resolve(frame.contentWindow)
+            } else {
+                reject(new Error('Sandbox iFrame was loaded but has no contentWindow.'))
+            }
+        }
         frame.onerror = () => reject(new Error('Failed to load processing sandbox :('))
         document.body.appendChild(frame)
         sandboxFrame = frame
@@ -107,7 +115,7 @@ window.addEventListener('message', (e: MessageEvent) => {
 
 // end snippet
 
-async function removeBg(jobId: string, url: string, deliver: 'dataUrl' | 'blobUrl') {
+async function removebg(jobId: string, url: string, deliver: 'dataUrl' | 'blobUrl') {
   report(jobId, 'Fetching image…')
   const input = await fetchBlob(url, jobId, 'Fetching image…')
   if (cancelled.has(jobId)) throw new Error('cancelled')
@@ -116,7 +124,7 @@ async function removeBg(jobId: string, url: string, deliver: 'dataUrl' | 'blobUr
   const png = await new Promise<Blob>((resolve, reject) => {
     sandboxJobs.set(jobId, { resolve, reject })
     win.postMessage(
-      { op: 'removebg', id: jobId, blob: input, publicPath: IMGLY_PUBLIC_PATH, ortWasmPath: ORT_WASM_BASE },
+      { op: 'removebg', id: jobId, blob: input, publicPath: imglypublic, ortWasmPath: ortwasm },
       '*',
     )
   })
@@ -159,7 +167,7 @@ async function loadFFmpeg(jobId: string): Promise<FFmpeg> {
     ffmpegLoading ??= (async () => {
         const instance = new FFmpeg()
         await instance.load({
-            classworkerURL: `${ffmpegbase}lib/worker.js`,
+            classWorkerURL: `${ffmpegbase}lib/worker.js`,
             coreURL: `${ffmpegbase}core/ffmpeg-core.js`,
             wasmURL: `${ffmpegbase}core/ffmpeg-core.wasm`,
         })
