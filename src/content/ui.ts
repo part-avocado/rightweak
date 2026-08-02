@@ -122,3 +122,32 @@ function swallowClickGesture(): void {
         for (const type of types) window.removeEventListener(type, swallow, {capture:true} as EventListenerOptions)
     }, 800)
 }
+
+export function showMenu(x:number, y:number, options:MenuOptions): void {
+    closeMenu()
+    const sh = root()
+    const wrap = document.createElement('div')
+    wrap.className = 'rightweak'
+    const menu = document.createElement('div')
+    wrap.appendChild(menu)
+
+    if (options.nav?.length) {
+        const nav = document.createElement('div')
+        nav.className = 'menu-nav'
+        for (const b of options.nav) {
+            const btn = document.createElement('button')
+            btn.type = 'button'
+            btn.title = b.title
+            btn.disabled = !!b.disabled
+            btn.innerHTML = b.icon
+            if (!b.disabled) {
+                btn.addEventListener('click', () => {
+                    closeMenu()
+                    b.onClick()
+                })
+            }
+            nav.appendChild(btn)
+        }
+        menu.appendChild(nav)
+    }
+}
