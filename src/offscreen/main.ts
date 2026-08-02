@@ -46,7 +46,7 @@ async function guard(jobId: string, work: () => Promise<{dataUrl?:string;blobUrl
         if (!cancelled.has(jobId))
             emit({target:'sw', ev:'result', jobId, ok:true, ...result})
         }
-    } catch (err) {
+    catch (err) {
         if (!cancelled.has(jobId)) {
             const message = err instanceof Error ? err.message: String(err)
             emit({ target: 'sw', ev:'result', jobId, ok: false, error:message})
@@ -151,3 +151,85 @@ async function rasterize(jobId:string,url:string,deliver: 'dataUrl' | 'blobUrl')
 
 let ffmpeg: FFmpeg | null = null
 let ffmpegLoading: Promise<FFmpeg> | null = null
+let transcodingJob: string | null = null
+let transcodeQueue: Promise<unknown> = Promise.resolve()
+
+async function loadFFmpeg(jobId: string): Promise<FFmpeg> {
+    if (ffmpeg) return ffmpeg
+    ffmpegLoading ??= (async () => {
+        const instance = new FFmpeg()
+        await instance.load({
+            classworkerURL: `${ffmpegbase}lib/worker.js`,
+            coreURL: `${ffmpegbase}core/ffmpeg-core.js`,
+            wasmURL: `${ffmpegbase}core/ffmpeg-core.wasm`,
+        })
+        ffmpeg = instance
+        return instance
+    })()
+    report(jobId, 'Loading FFmpeg')
+    try {
+        return await ffmpegLoading
+    } finally {
+        ffmpegLoading = null
+    }
+}
+
+async function resetFFmpeg(): Promise<void> {
+    try {
+        ffmpeg?.terminate()
+    } catch {
+    }
+    ffmpeg = null
+    transcodingJob = null
+}
+
+async function transcode(jobid:string, url:string): Promise<{blobUrl:string}>{
+    const run = transcodeQueue.then(() => doTranscode(jobid,url))
+    transcodeQueue = run.catch(() => {})
+    return run
+}
+
+async function doTranscode(jobId:string, url:string): Promise<{blobUrl:string}>{
+    if (cancelled.has(jobId)) throw new Error('cancelled')
+    const blob = await fetchBlob(url, jobId, 'Fetching video...')
+    if (blob.type.includes('vide/mp4')) {
+    report(jobId, 'Downloading...')
+    return {blobUrl: URL.createObjectURL(blob)}
+    }
+
+    const ff = await loadFFmpeg(jobId)
+    if (cancelled.has(jobId)) throw new Error('cancelled')
+    transcodingJob = jobId
+    const onProgress = ({progress}: {progress:number}) => {
+        if (progress >= 0 && progress <= 1) report(jobId, 'Converting to MP4...', progress)
+    }
+    ff.on('progress', onProgress)
+    try {
+        report(jobId, 'Converting to MP4...')
+        await ff.writeFile('input', new Uint8Array(await blob.arrayBuffer()))
+        const code = await ff.exec([
+            '-i', 'input',
+            '-c:v', 'libx264',
+            '-preset', 'veryfast',
+            '-crf', '23',
+            '-pix_fmt', '-yuv420p',
+            '-movflags', '+faststart',
+            '-c:a', 'aac',
+            '-b:a', '160k',
+            'output.mp4'
+        ])
+        if (code !== 0) throw new Error('Video conversion failed. The format may be unsupported?')
+        const data = (await ff.readFile('output.mp4')) as Uint8Array
+        await ff.deleteFile('input').catch(()=>{})
+        await ff.deleteFile('output.mp4').catch(()=>{})
+        report(jobId, 'Preparing download...')
+        return {blobUrl: URL.createObjectURL(new Blob([data.slice().buffer], {type:'video/mp4'}))}
+    } catch {
+        if (cancelled.has(jobId)) throw new Error('cancelled')
+        await resetFFmpeg()
+        throw err
+    } finally {
+        ff.off('progress', onProgress)
+        transcodingJob = null
+    }
+}
