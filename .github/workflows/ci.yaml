@@ -1,3 +1,4 @@
+# BEGIN AI USAGE SECTION
 name: CI
 
 on:
@@ -35,3 +36,5 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
         continue-on-error: true
+
+# END AI USAGE SECTION
