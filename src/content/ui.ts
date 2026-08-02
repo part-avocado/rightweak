@@ -108,3 +108,17 @@ export function closeMenu(): void {
     openMenuCleanup?.()
     openMenuCleanup = null
 }
+
+// input devouring for context menu open/close
+
+function swallowClickGesture(): void {
+    const types = ['mousedown', 'pointerup', 'mouseup', 'click'] as const
+    const swallow = (ev: Event) => {
+        ev.preventDefault()
+        ev.stopImmediatePropagation()
+    }
+    for (const type of types) window.addEventListener(type,swallow, {capture:true, once:true})
+    setTimeout(() => {
+        for (const type of types) window.removeEventListener(type, swallow, {capture:true} as EventListenerOptions)
+    }, 800)
+}
