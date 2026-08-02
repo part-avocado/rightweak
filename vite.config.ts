@@ -9,7 +9,7 @@ export default defineConfig({
         target: 'es2022',
         modulePreload: false, // it would not work with true
         chunkSizeWarningLimit: 1000000000000, // larg number
-        rollupOptions: {input:{offscreen:'src/offscreen/offscreen.html', sandbox:'src/sandbox/sandbox.html'},},
+        rollupOptions: {input:{offscreen:'src/offscreen/sandbox.html', sandbox:'src/sandbox/sandbox.html'},},
     },
 })
 
