@@ -15,7 +15,7 @@
         "@ffmpeg/util": "^0.12.2",
         "@imgly/background-removal": "^1.7.0",
         "@imgly/background-removal-data": "1.4.5",
-        "onnxruntime-web": "1.17.3"
+        "onnxruntime-web": "^1.21.0"
     },
     "devDependencies": {
         "@crxjs/vite-plugin": "^2.7.1",

@@ -1,8 +1,8 @@
 import {cpSync, existsSync, mkdirSync, readFileSync, writeFileSync, copyFileSync} from 'node:fs'
 import {dirname,join} from 'node:path'
-import {fileURLtoPath} from 'node:url'
+import {fileURLToPath} from 'node:url'
 
-const root = join(dirname(fileURLtoPath(import.meta.url)), '..')
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const nm = join(root, 'node_modules')
 const pub = join(root, 'public')
 
