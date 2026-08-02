@@ -278,3 +278,12 @@ async function makeThumb(blob:Blob): Promise<string> {
     bitmap.close()
     return canvas.toDataURL('image/png')
 }
+
+async function blobToDataUrl(blob:Blob): Promise<string> {
+    return new Promise<string>((resolve,reject) => {
+        const fr = new FileReader()
+        fr.onload = () => resolve(fr.result as string)
+        fr.onerror = () => reject(new Error('Failed to encode result.'))
+        fr.readAsDataURL(blob)
+    })
+}
