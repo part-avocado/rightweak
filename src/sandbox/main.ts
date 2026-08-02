@@ -66,3 +66,16 @@ let sandboxFrame: HTMLIFrameElement | null = null
 let sandboxReady: Promise<window> | null = null
 const sandboxJobs = new Map<string, {resolve: (b:Blob) => void; reject: (e:Error) => void }>()
 
+function sandboxWindow(): Promise<Window> {
+    if (sandboxReady && sandboxFrame?.isConnected) return sandboxReady
+    sandboxReady = new Promise((resolve, reject) => {
+        const frame = document.createElement('iframe')
+        frame.style.display = 'none'
+        frame.src = sandboxer
+        frame.onload = () => resolve(frame.contentWindow)
+        frame.onerror = () => reject(new Error('Failed to load processing sandbox :('))
+        document.body.appendChild(frame)
+        sandboxFrame = frame
+    })
+    return sandboxReady
+}
