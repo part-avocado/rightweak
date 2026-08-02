@@ -275,4 +275,27 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
         swallowClickGesture()
         closeMenu()
     }
+    const scroll_keys = ['PageUp', 'PageDown', 'Home', 'End', ' ', 'ArrowLeft', 'ArrowRight']
+    const onKey = (ev: KeyboardEvent) => {
+        if (ev.key === 'Escape') {
+            ev.stopImmediatePropagation()
+            closeMenu()
+            return
+        }
+        if (ev.key === 'Shift' && !ev.repeat) {
+            expand()
+            return
+        }
+        if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+            ev.preventDefault()
+            ev.stopImmediatePropagation
+            const items = focusables()
+            if (!items.length) return
+            const active = menu.contains(sh.activeElement as Node) ? (sh.activeElement as HTMLButtonElement) : null
+            const idx = active ? items.indexOf(active) : -1
+            const next = ev.key === 'ArrowDown' ? items[(idx +1) % items.length] : items[(idx-1+items.length) % items.length]
+            next.focus()
+            return 
+        }
+    }
 }
