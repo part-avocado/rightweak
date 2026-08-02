@@ -213,4 +213,36 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
         }
     }
     renderEntries(menu, options.entries)
+
+    const setHint = (hintEl: HTMLElement, text: string) => {
+        hintEl.textContent = ''
+        const parts = text.split('Shift')
+        hintEl.append(parts[0] ?? '')
+        if (parts.length > 1 ) {
+            const kbd = document.createElement('kbd')
+            kbd.textContent = '⇧ Shift'
+            hintEl.appendChild(kbd)
+            hintEl.append(parts[1])
+        }
+    }
+
+    let hintEl: HTMLElement | null = null
+    if (options.hint) {
+        hintEl = document.createElement('div')
+        hintEl.className = 'menu-hint'
+        setHint(hintEl, options.hint)
+        menu.appendChild(hintEl)
+    }
+
+    sh.appendChild(wrap)
+
+    const PAD = 12
+    const clamp = () => {
+        menu.style.maxHeight = `${Math.max(120, window.innerHeight - PAD * 2)}px`
+        const w = menu.offsetWidth
+        const h = menu.offsetHeight
+        menu.style.left = `${Math.max(PAD, Math.min(x, window.innerWidth - w - PAD))}px`
+        menu.style.top = `${Math.max(PAD, Math.min(y, window.innerHeight - h - PAD))}px`
+    }
+    clamp()
 }
