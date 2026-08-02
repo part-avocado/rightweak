@@ -4,7 +4,7 @@ import manifest from './manifest.config'
 
 export default defineConfig({
     plugins: [crx({manifest})],
-    resolve: {alias:{'onnxruntime-web': 'onnxruntime-web/wasm'}},
+    resolve: {alias:[{ find: /^onnxruntime-web$/, replacement: 'onnxruntime-web/wasm'}]},
     build: {
         target: 'es2022',
         modulePreload: false, // it would not work with true
