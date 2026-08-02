@@ -297,5 +297,11 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
             next.focus()
             return 
         }
+        if (scroll_keys.includes(ev.key) && !menu.contains(sh.activeElement as Node)) {
+            ev.preventDefault()
+        }
+    }
+    const onKeyUp = (ev: KeyboardEvent) => {
+        if (ev.key === 'Shift') collapse()
     }
 }
