@@ -224,7 +224,7 @@ async function doTranscode(jobId:string, url:string): Promise<{blobUrl:string}>{
         await ff.deleteFile('output.mp4').catch(()=>{})
         report(jobId, 'Preparing download...')
         return {blobUrl: URL.createObjectURL(new Blob([data.slice().buffer], {type:'video/mp4'}))}
-    } catch {
+    } catch (err) {
         if (cancelled.has(jobId)) throw new Error('cancelled')
         await resetFFmpeg()
         throw err
@@ -232,4 +232,29 @@ async function doTranscode(jobId:string, url:string): Promise<{blobUrl:string}>{
         ff.off('progress', onProgress)
         transcodingJob = null
     }
+}
+
+// helper tools
+async function fetchBlob(url:string,jobId:string,stage:string): Promise<Blob> {
+    let res: Response
+    try{
+        res = await fetch(url, {signal:singalOf(jobId), credentials: 'include'})
+    } catch (err) {
+        throw new Error(`fetch of ${url.slice(0,120)} failed. ${err instanceof Error ? err.message :err}`)
+    }
+    if (!res.ok) throw new Error
+    const total = Number(res.headers.get('content-length')) || 0
+    if (!res.body || !total) return res.blob()
+    const reader = res.body.getReader()
+    const parts: BlobPart[] = []
+    let received = 0
+    for (;;) {
+        const {done,value} = await reader.read()
+        if (done) break
+        parts.push(value)
+        received += value.byteLength
+        report(jobId, stage,Math.min(1, received/total))
+    }
+    const type = res.headers.get('content-type')?.split(';')[0]?.trim() ?? ''
+    return new Blob(parts, {type})
 }
