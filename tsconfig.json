@@ -9,6 +9,7 @@
         "isolatedModules":true,
         "skipLibCheck":true,
         "types": ["chrome", "vite/client"],
+        "checkJs": true,
     },
     "include": ["src","manifest.config.json", "vite.config.ts"]
 }
