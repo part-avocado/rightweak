@@ -150,4 +150,67 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
         }
         menu.appendChild(nav)
     }
+    
+    // Entry renderer
+    const renderEntries = (parent: HTMLElement, entries: MenuEntry[]) => {
+        for (const entry of entries) {
+            if (entry === 'divider') {
+                const sep = document.createElement('div')
+                sep.className = 'menu-sep'
+                parent.appendChild(sep)
+                continue
+            }
+            if ('pair' in entry) {
+                const row = document.createElement('div')
+                row.className = 'menu-pair'
+                for (const action of entry.pair) {
+                    const btn = document.createElement('button')
+                    btn.type = 'button'
+                    btn.disabled = !!action.disabled
+                    btn.innerHTML = action.icon
+                    const lbl = document.createElement('span')
+                    lbl.textContent = action.label
+                    btn.appendChild(lbl)
+                    if (!action.disabled) {
+                        btn.addEventListener('click', () => {
+                            closeMenu()
+                            action.onClick()
+                        })
+                    }
+                    row.appendChild(btn)
+                }
+                parent.appendChild(row)
+                continue
+            }
+            const btn = document.createElement('button')
+            btn.className = 'menu-item' + (entry.magic ? ' magic' : '') + (entry.checked ? ' checked' : '')
+            btn.type = 'button'
+            btn.disabled = !!entry.disabled
+            btn.innerHTML = entry.icon
+            const lbl = document.createElement('span')
+            lbl.className = 'lbl'
+            lbl.textContent = entry.label
+            if (entry.sublabel) {
+                const sub = document.createElement('span')
+                sub.className = 'sub'
+                sub.textContent = entry.sublabel
+                lbl.appendChild(sub)
+            }
+            btn.appendChild(lbl)
+            if (entry.checked !== undefined) {
+                const check = document.createElement('span')
+                check.className = 'check'
+                check.innerHTML = ICONS.check
+                btn.appendChild(check)
+            }
+            if (!entry.disabled && entry.onClick) {
+                btn.addEventListener('click', () => {
+                    closeMenu()
+                    entry.onClick!()
+                })
+            }
+            parent.appendChild(btn)
+        }
+    }
+    renderEntries(menu, options.entries)
 }
