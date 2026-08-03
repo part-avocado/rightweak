@@ -75,3 +75,89 @@
         transform:scale(1);
     }
 }
+
+.menu-nav {
+    display: flex;
+    gap: 4px;
+    padding: 2px 2px 6px;
+}
+
+.menu-nav button {
+    flex: 1;
+    height: 32px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bg-soft);
+    color: var(--text);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.menu-nav button:hover:not(:disabled)
+.menu-nav button:focus-visible {
+    background: var(--accent-soft);
+    color: var(--accent);
+    outline: none;
+}
+
+.menu-nav button:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.menu-nav svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.0;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.menu-pair {
+    display: flex;
+    gap: 5px;
+    padding: 3px 0;
+}
+
+.menu-pair button {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: var(--bg-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.menu-pair button:hover:not(:disabled)
+.menu-pair button:focus-visible {
+    background: var(--accent-soft);
+    color: var(--accent);
+    outline: none;
+}
+
+.menu-pair button:disabled {
+    opacity: 0.42;
+    cursor: default;
+}
+
+.menu-pair svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
