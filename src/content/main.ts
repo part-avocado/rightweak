@@ -317,3 +317,35 @@ async function screenshotCopy(): Promise<void> {
             toast.error(`Copy failed: ${(err as Error).message}`)
     }
 }
+
+interface RunningJob {
+    result: Promise<{dataUrl?: string; preview?: string}>
+    toast: ToastHandle
+}
+
+function runJob(job: JobRequest, title: string): RunningJob {
+    let cancelled = false
+    const port = chrome.runtime.connect({name: port_name})
+    const toast = createToast(title, () => {
+        cancelled = true
+        try {
+            port.postMessage({type: 'cancel'} satisfies PortMessageFrom)
+        } catch {
+            // atp port is gone, so i dont need anything here
+        }
+    })
+
+    const result = new Promise<{ dataUrl?: string; preview?:string}>((resolve, reject) => {
+        port.onMessage.addListener((m:PortMessageTo) => {
+            if (m.type === 'progress') toast.setStage(m.stage, m.ratio)
+            else if (m.type === 'done') resolve({dataUrl: m.dataUrl, preview: m.preview})
+            else if (m.type === 'error') reject(new Error(m.message))
+        })
+        port.onDisconnect.addListener(() => {
+            reject(new Error(cancelled ? 'cancelled' : 'The extension was reloaded whilst performing an operation. Please try again.'))
+        })
+    })
+
+    port.postMessage({type:'run', job} satisfies PortMessageFrom)
+    return {result, toast}
+}
