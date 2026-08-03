@@ -78,3 +78,39 @@ function pageCopyGroup(): MenuEntry[] {
         {icon: ICONS.title, label: 'Copy page title', sublabel: truncate(document.title,44), onClick: () => copyText(document.title, 'Page title copied')},
     ]
 }
+
+function screenshotGroup(): MenuEntry[] {
+    return [
+        {icon: ICONS.camera, label: 'Download screenshot as PNG', onClick: () => screenshotSave()},
+        {icon: ICONS.camera, label: 'Copy screenshot as PNG', onClick: () => screenshotCopy()},
+    ]
+}
+
+function pageMoreEntries(): MenuEntry[] {
+    const cleaned = cleanUrl(location.href)
+    return [
+        {icon: ICONS.markdown, label: 'Copy as Markdown link', sublabel: `[${truncate(document.title, 24)}](...)`, onClick: () => copyText(`[${document.title}](${location.href})`, 'Markdown link copied')},
+        {icon: ICONS.clean, label: 'Copy clean link', sublabel: cleaned !== location.href ? truncate(cleaned, 44) : 'All clean', onClick: () => copyText(cleaned, 'Clean link copied')},
+        'divider',
+        {pair: [
+            {icon: ICONS.toTop, label: 'Scroll to top', onClick: () => window.scrollTo({ top:0, behavior: 'smooth'})},
+            {icon: ICONS.toBottom, label: 'Scroll to bottom', onClick: () => window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth'})},
+        ]},
+        {icon: ICONS.inspect, label: 'Inspect element', sublabel: 'Hover, click, or copy selector or HTML', onClick: () => startInpsector()},
+        {icon: ICONS.hardReload, label: 'Reset cache and reload', onClick: () => void chrome.runtime.sendMessage({type: 'reload-hard'})},
+        {icon: ICONS.print, label: 'Print page', onClick: () => window.print()},
+    ]
+}
+
+function cleanUrl(href: string): string {
+    const tracking = /^(utm_|fbclid$|gclid$|dclid$|msclkid$|mc_eid$|igshid$|si$|ref_src$|ref_url$|vero_|oly_|_hs|hsa_|yclid$|twclid$|ttclid$|wbraid$|gbraid$|s_kwcid$)/i
+    try {
+        const u = new URL(href)
+        for (const key of [...u.searchParams.keys()]) {
+            if (tracking.text(key)) u.searchParams.delete(key)
+        } 
+        return u.href
+    } catch {
+        return href
+    }
+}        
