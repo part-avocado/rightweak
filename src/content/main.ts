@@ -266,3 +266,23 @@ function videoEntries(video: HTMLVideoElement): MenuEntry[] {
         }
     ]
 }
+
+function videoSrc(video:HTMLVideoElement): string | null {
+    if (video.currentSrc) return video.currentSrc
+    if (video.src) return video.src
+    const source = video.querySelector('source[src]')
+    return source?.getAttribute('src') ? new URL(source.getAttribute('src')!, location.href).href : null
+}
+
+function titleFor(kind: JobRequest['kind']): string {
+    switch(kind) {
+        case 'save-png':
+            return 'Save as PNG'
+        case 'save-png-nobg':
+            return 'Save PNG without background'
+        case 'save-original':
+            return 'Save image'
+        default:
+            return 'Save'
+    }
+}
