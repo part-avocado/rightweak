@@ -51,3 +51,14 @@ function oncontextmenu(e: MouseEvent): void {
         })
     }
 }
+
+// ALL THE FUNCTIONS AND FEATURES AND STUFF BELOW HERE
+
+// core features
+function navButtons(): NavButton[] {
+    const nav = (window as {navigation?: {canGoBack?: boolean; canGoForward?: boolean} }).navigation
+    return [
+        {icon: ICONS.back, title: 'Back', disabled: nav?.canGoBack === false, onClick: () => history.back()},
+        {icon: ICONS.forward, title: 'Forward', disabled: nav?.canGoForward === false, onClick: () => history.forward()},
+    ]
+}
