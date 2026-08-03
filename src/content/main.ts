@@ -349,3 +349,53 @@ function runJob(job: JobRequest, title: string): RunningJob {
     port.postMessage({type:'run', job} satisfies PortMessageFrom)
     return {result, toast}
 }
+
+
+// very important part
+// probably shouldnt procrastinate on this
+
+function saveFlow(job: JobRequest, title:string): void {
+    const {result, toast} = runJob(job, title)
+    result
+        .then(({preview}) => toast.success('Download started', preview))
+        .catch((err: Error) => {
+            if (err.message === 'cancelled') toast.close()
+            else toast.error(err.message)
+        })
+}
+
+async function copyFlow(job: JobRequest, title:string): Promise<void> {
+    const {result, toast} = runJob(job, title)
+    const blobPromise = result.then(({dataUrl}) => {
+        if (!dataUrl) throw new Error('No image data received.')
+        return dataUrltoBlob(dataUrl)
+    })
+    blobPromise.catch(() => {})
+
+    try {
+        await navigator.clipboard.write([new ClipboardItem({'image/png': blobPromise})])
+        const {dataUrl} = await result
+        toast.success('Copied to clipboard', dataUrl)
+    } catch {
+        let blob: Blob
+        let preview: string | undefined
+        try{
+            blob = await blobPromise
+            preview = (await result).dataUrl
+        } catch (err) {
+            const msg = (err as Error).message
+            if (msg === 'cancelled') toast.close()
+            else toast.error(msg)
+            return
+        }
+
+        toast.action('Your image is ready', 'Copy to clipboard', async () => {
+            try {
+                await navigator.clipboard.write([new ClipboardItem({'image/png': blob})])
+                toast.success('Copied to clipboard', preview)
+            } catch (copyerr) {
+                toast.error(`Copy failed. ${(copyerr as Error).message}`)
+            }
+        })
+    }
+}
