@@ -241,3 +241,28 @@ function imageFormat(url: string): string | null {
         return null
     }
 }
+
+function videoEntries(video: HTMLVideoElement): MenuEntry[] {
+    const src = videoSrc(video)
+    const downloadble = !!src && /^https?:/.test(src)
+    const streaming = !!src && src.startsWith('blob:')
+    const name = filenameFrom(src ?? '', 'video')
+
+    return [
+        {icon: ICONS.film, label: 'Save video as MP4', disabled: !downloadble, sublabel: downloadble ? undefined : streaming ? 'This video cannot be downloaded.' : 'No video source found', onClick: () => saveFlow({kind: 'save-video-mp4', url: src!, filename: name}, 'Save video as MP4')},
+        'divider',
+        {icon: video.paused ? ICONS.play : ICONS.pause, label: video.paused ? 'Play' : 'Pause', onClick: () => void (video.paused ? video.play() : video.pause())},
+        {icon: video.muted ? ICONS.sound : ICONS.mute, label: video.muted ? 'Unmute' : 'Mute', onClick: () => (video.muted = !video.muted)},
+        {icon: ICONS.loop, label: 'Loop', checked: video.loop, onClick: () => (video.loop = !video.loop)},
+        {icon: ICONS.pip, label: 'Picture in picture', checked: document.pictureInPictureElement === video, onClick: () => {if (document.pictureInPictureElement === video) void document.exitPictureInPicture()
+            else void video.requestPictureInPicture().catch(() => createToast('Video').error('Picture-in-picture is not available for this video.'))
+        }},
+        'divider',
+        {
+            pair: [
+                {icon: ICONS.newTab, label: 'Open video in new tab', disabled: !downloadble, onClick: () => void chrome.runtime.sendMessage({ type: 'open-tab', url:src})},
+                {icon: ICONS.link, label: 'Copy video link', disabled: !downloadble, onClick: () => copyText(src!, 'Video link copied')}
+            ]
+        }
+    ]
+}
