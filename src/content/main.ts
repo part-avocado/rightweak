@@ -164,3 +164,15 @@ function videoMoreExtras(video: HTMLVideoElement): MenuEntry[] {
         ]
     }]
 }
+
+function findMedia(e: MouseEvent, path: EventTarget[]): HTMLImageElement | HTMLVideoElement | null {
+    for (const node of path) {
+        if (node instanceof HTMLImageElement && (node.currentSrc || node.src)) return node
+        if (node instanceof HTMLVideoElement) return node
+    }
+    for (const el of document.elementsFromPoint(e.clientX, e.clientY)) {
+        if (el instanceof HTMLVideoElement) return el
+        if (el instanceof HTMLImageElement && (el.currentSrc || el.src)) return el
+    }
+    return null
+}
