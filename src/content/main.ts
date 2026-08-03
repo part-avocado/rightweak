@@ -176,3 +176,41 @@ function findMedia(e: MouseEvent, path: EventTarget[]): HTMLImageElement | HTMLV
     }
     return null
 }
+
+function iamageEntries(img: HTMLImageElement): MenuEntry[] {
+    const rawUrl = img.currentSrc || img.src
+    const name = filenameFrom(rawUrl, 'image')
+    const httpUrl = /^https?;/.text(rawUrl) ? rawUrl : null
+    const job = (kind: JobRequest['kind']) => async () => {
+        let url: string
+        try {
+            url = await resolveImageUrl(img)
+        } catch {
+            createToast('Image').error("Unable to access this image (does the site block CORS?)")
+            return
+        }
+        const request: JobRequest = {kind, url, filename:name}
+        if (kind.startsWith('copy')) {
+            copyFlow(request, kind === 'copy-png-nobg' ? 'Remove background and copy as PNG' : 'Copy as PNG')
+        } else {
+            saveFlow(request, titleFor(kind))
+        }
+    }
+
+    const fmt = imageFormat(rawUrl)
+    return [
+        {icon: ICONS.savePng, label: 'Save image as PNG', onClick: job('save-png')},
+        {icon: ICONS.copy, label: 'Copy image as PNG', onClick: job('copy-png')},
+        {icon: magic_icons.save, label: 'Save PNG without background', magic: true, onClick: job('save-png-nobg')},
+        {icon: magic_icons.copy, label: 'Copy PNG without background', magic: true, onClick: job('copy-png-nobg')},
+        'divider',
+        {
+            pair: [
+                {icon: ICONS.newTab, label: 'Open image in new tab', disabled: !httpUrl, onClick: () => void chrome.runtime.sendMessage({type: 'open-tab', url: httpUrl})},
+                {icon: ICONS.link, label: 'Copy image link', disabled: !httpUrl, onClick: () => copyText(httpUrl!, 'Image link copied')}
+            ]
+        },
+        {icon: ICONS.save, label: 'Save image as...', sublabel: fmt? `Original format · ${fmt}` : 'Original format', onClick: job('save-original')},
+        {icon: ICONS.copy, label: 'Copy image', sublabel: fmt ?? undefined, onClick: job('copy-png')}
+    ]
+}
