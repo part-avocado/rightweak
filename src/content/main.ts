@@ -62,3 +62,19 @@ function navButtons(): NavButton[] {
         {icon: ICONS.forward, title: 'Forward', disabled: nav?.canGoForward === false, onClick: () => history.forward()},
     ]
 }
+
+function linkGroup(link: HTMLAnchorElement): MenuEntry[] {
+    const text = (link.textContent ?? '').trim().replace(/\s+/g, ' ')
+    return [
+        {icon: ICONS.newTab, label: 'Open link in new tab', onClick: () => void chrome.runtime.sendMessage({type: "open-tab", url: link.href})},
+        {icon: ICONS.link, label: "Copy link address", sublabel: link.href, onClick: () => copyText(link.href, 'Link address copied')},
+        ...(text ? [{icon: ICONS.text, label: 'Copy link text', sublabel: `"${truncate(text,40)}`, onClick: () => copyText(text, 'Link text copied')} satisfies MenuEntry] : [])
+    ]
+}
+
+function pageCopyGroup(): MenuEntry[] {
+    return [
+        {icon: ICONS.link, label: 'Copy page address', sublabel: location.href, onClick: () => copyText(location.href, 'Page address copied')},
+        {icon: ICONS.title, label: 'Copy page title', sublabel: truncate(document.title,44), onClick: () => copyText(document.title, 'Page title copied')},
+    ]
+}
