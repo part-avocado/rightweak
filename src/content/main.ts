@@ -286,3 +286,34 @@ function titleFor(kind: JobRequest['kind']): string {
             return 'Save'
     }
 }
+
+// screenshot tools
+async function screenshotSave(): Promise<void> {
+    const filename = `${filenameSafe(document.title) || 'screenshot'}.png`
+    const res = (await chrome.runtime
+        .sendMessage({ttype:'screenshot-save', filename})
+        .catch((err: Error) => ({ok: false, error: err.message}))) as {ok:boolean; error?:string}
+    const toast = createToast('Save screenshot')
+    if (res?.ok) toast.success('Download started')
+    else toast.error(res?.error ?? 'Screenshot failed. Try again?')
+}
+
+async function screenshotCopy(): Promise<void> {
+    const res = (await chrome.runtime
+        .sendMessage({ type: 'screenshot'})
+        .catch((err: Error) => ({ok:false, error:err.message}))) as {
+            ok: boolean
+            dataUrl?: string
+            error?:string
+        }
+        const toast = createToast('Copy screenshot')
+        if (!res?.ok || !res.dataUrl) {
+            toast.error(res?.error ?? 'Screenshot failed. Try again?')
+            return
+        } try {
+            await navigator.clipboard.write([new ClipboardItem({'image/png': dataUrltoBlob(res.dataUrl)})])
+            toast.success('Copied to clipboard', res.dataUrl)
+        } catch (err) {
+            toast.error(`Copy failed: ${(err as Error).message}`)
+    }
+}
