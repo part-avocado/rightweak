@@ -286,3 +286,85 @@
     border-radius: 4px;
     background: var(--bg-soft);
 }
+
+/* element inspector */
+.inspect-box {
+    position: fixed;
+    z-index: 2147483646;
+    pointer-events: none;
+    background: rgba(79, 124, 247, 0.14);
+    outline: 1.5px solid var(--accent);
+}
+
+.inspect-tag {
+    position: fixed;
+    z-index: 2147483647;
+    pointer-events: none;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.inspect-hint {
+    position: fixed;
+    z-index: 2147483647;
+    pointer-events: none;
+    left: 50%;
+    top: 14px;
+    transform: translateX(-50%);
+    padding: 7px 14px;
+    border-radius: 999px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    font-size: 12px;
+    color: var(--text);
+    animation: rightweak-slide-in 0.2s ease-out;
+}
+
+.inspect-card {
+    position: fixed;
+    z-index: 2147483647;
+    width: 300px;
+    padding: 13px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    box-shadow: var(--shadow);
+    animation: rightweak-pop 0.12s ease-out;
+}
+
+.ic-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ic-title {
+    flex: 1;
+    font-weight: 700;
+    font-family: ui-monospace, Menlo, monospace;
+    color: var(--accent);
+}
+
+.ic-x {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+    font-size: 11px;
+}
+
+.ic-x:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+}
