@@ -1,3 +1,4 @@
+import { HtmlAssetSource } from 'vite'
 import css from './styles.css?inline'
 
 let shadow: ShadowRoot | null = null
@@ -353,4 +354,105 @@ export interface ToastHandle {
     error(message: string): void
     action(message:string, buttonLabel:string, cb: () => void): void
     close(): void
+}
+
+export function createToast(title: string, onCancel?: () => void): ToastHandle {
+    const el = document.createElement('div')
+    el.className = 'toast'
+    el.innerHTML = `
+    <div class="toast-head">
+        <span class="toast-icon">${svg_spinner}</span>
+        <span class="toast-title"></span>
+        <button class="toast-x" type="button" title="Cancel">${svg_x}</button
+    </div>
+    <div class="toast-body">
+        <span class="toast-preview"><img alt=""></span>
+        <span class="toast-info">
+            <div class="toast-stage">Starting...</div>
+            <div class="toast-track indeterminate"><div class="toast-bar"></div></div>
+        </span
+    </div>
+    <div class="toast-actions" hidden></div>
+    `
+
+    const titleEl = el.querySelector('.toast-title') as HTMLElement
+    const iconEl = el.querySelector('.toast-icon') as HTMLElement
+    const stageEl = el.querySelector('.toast-stage') as HTMLElement
+    const trackEl = el.querySelector('.toast-track') as HTMLElement
+    const barEl = el.querySelector('.toast-bar') as HTMLElement
+    const previewImg = el.querySelector('.toast-preview img') as HTMLImageElement
+    const actionsEl = el.querySelector('.toast-actions') as HTMLElement
+    const xBtn = el.querySelector('.toast-x') as HTMLElement
+    titleEl.textContent = title
+    let terminal = false
+    let autoCloseTimer: number | undefined
+
+    const close = () => {
+        clearTimeout(autoCloseTimer)
+        if (!el.isConnected) return
+        el.classList.add('closing')
+        el.addEventListener('animationend', () => el.remove(), {once:true})
+        setTimeout(() => el.remove(), 400)
+    }
+
+    xBtn.addEventListener('click', () => {
+        if (!terminal) onCancel?.()
+            close()
+    })
+
+    const finish = (cls: 'success' | 'error', icon:string, message:string, autoClose?: number) => {
+        terminal = true
+        el.classList.remove('success', 'error')
+        el.classList.add(cls)
+        iconEl.innerHTML = icon
+        stageEl.textContent = message
+        xBtn.title = 'Dismiss'
+        if (autoClose) autoCloseTimer = window.setTimeout(close, autoClose)
+    }
+
+    stack().appendChild(el)
+
+    return {
+        setStage(stage, ratio) {
+            if (terminal) return
+            stageEl.textContent = stage
+            if (typeof ratio === 'number' && isFinite(ratio)) {
+                trackEl.classList.remove('indeterminate')
+                barEl.style.width = `${Math.round(Math.max(0, Math.min(1,ratio))*100)}%`
+            } else {
+                trackEl.classList.add('indeterminate')
+                barEl.style.width = ''
+            }
+        }, 
+        success(message, previewUrl) {
+            if (previewUrl) {
+                previewImg.src = previewUrl
+                el.classList.add('has-preview')
+            }
+            finish('success', svg_ok, message, previewUrl ? 5000 : 3200)
+        },
+        error(message) {
+            finish('error', svg_err, message)
+        },
+        action(message, buttonLabel, cb) {
+            terminal = true
+            iconEl.innerHTML = svg_ok
+            stageEl.textContent = message
+            trackEl.style.display = 'none'
+            xBtn.title = 'Dismiss'
+            actionsEl.hidden = false
+            actionsEl.innerHTML = ''
+            const btn = document.createElement('button')
+            btn.className = 'toast-btn'
+            btn.type = 'button'
+            btn.textContent = buttonLabel
+            btn.addEventListener('click', () => {
+                actionsEl.hidden = true
+                terminal = false
+                cb()
+            })
+            actionsEl.appendChild(btn)
+        },
+        close,
+    }
 }
