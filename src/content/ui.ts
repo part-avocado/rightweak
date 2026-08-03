@@ -332,3 +332,25 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
         wrap.remove()
     }
 }
+
+// toasts!!!!
+
+function stack(): HTMLDivElement {
+    const sh = root()
+    if (toastStack && toastStack.isConnected) return toastStack
+    const wrap = document.createElement('div')
+    wrap.className = 'rightweak'
+    toastStack = document.createElement('div')
+    toastStack.className = 'toasts'
+    toastStack.appendChild(toastStack)
+    sh.appendChild(wrap)
+    return toastStack
+}
+
+export interface ToastHandle {
+    setStage(stage: string, ratio?: number): void
+    success(messge:string, previewUrl?: string): void
+    error(message: string): void
+    action(message:string, buttonLabel:string, cb: () => void): void
+    close(): void
+}
