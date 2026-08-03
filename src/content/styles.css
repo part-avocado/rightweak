@@ -368,3 +368,51 @@
     background: var(--bg-hover);
     color: var(--text);
 }
+
+.ic-selector {
+    margin-top: 6px;
+    padding: 6px 8px;
+    border-radius: 7px;
+    background: var(--bg-soft);
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ic-rows {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px 12px;
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.ic-rows > span:nth-child(odd) {
+    color: var(--text-muted);
+}
+
+.ic-rows > span:nth-child(even) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ic-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    margin-right: 6px;
+    vertical-align: baseline;
+}
+
+.ic-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
