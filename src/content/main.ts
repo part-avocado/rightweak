@@ -399,3 +399,12 @@ async function copyFlow(job: JobRequest, title:string): Promise<void> {
         })
     }
 }
+
+// text copier
+function copyText(text: string, successMessage:string): void {
+    const toast = createToast('Copy')
+    navigator.clipboard
+        .writeText(text)
+        .then(() => toast.success(successMessage))
+        .catch((err: Error) => toast.error(`Copy failed. ${err.message}`))
+}
