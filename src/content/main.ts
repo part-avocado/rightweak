@@ -114,3 +114,19 @@ function cleanUrl(href: string): string {
         return href
     }
 }        
+
+function pageEntries(link: HTMLAnchorElement | null, selection: string): MenuEntry[] {
+    const entries: MenuEntry[] = []
+
+    if (selection) {
+        entries.push(
+            {icon: ICONS.copy, label: 'Copy', sublabel: `"${truncate(selection, 40)}"`, onClick: () => copyText(selection, 'Coped to clipboard')},
+            {icon: ICONS.search, label: 'Search with Google', sublabel: `"${truncate(selection, 40)}"`, onClick: () => void chrome.runtime.sendMessage({type: 'open-tab', url: `https://www.google.com/search?q=${encodeURIComponent(selection)}`,})
+        },
+        'divider',
+    )
+    }
+
+    if (link) entries.push(...linkGroup(link), 'divider')
+    return entries
+}
