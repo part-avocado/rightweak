@@ -94,7 +94,7 @@
     place-items: center;
 }
 
-.menu-nav button:hover:not(:disabled)
+.menu-nav button:hover:not(:disabled),
 .menu-nav button:focus-visible {
     background: var(--accent-soft);
     color: var(--accent);
@@ -139,7 +139,7 @@
     white-space: nowrap;
 }
 
-.menu-pair button:hover:not(:disabled)
+.menu-pair button:hover:not(:disabled),
 .menu-pair button:focus-visible {
     background: var(--accent-soft);
     color: var(--accent);
@@ -160,4 +160,91 @@
     stroke-width: 1.7;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 9px;
+    border: 0px;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.menu-item:hover:not(:disabled),
+.menu-item:focus-visible {
+    background: var(--bg-hover);
+    outline: none;
+}
+
+.menu-item:disabled {
+    opacity: 0.42;
+    cursor: default;
+}
+
+.menu-item svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    color: var(--text-muted);
+}
+
+.menu-item:hover:not(:disabled) svg,
+.menu-item:focus-visible svg {
+    color: var(--accent);
+}
+
+.menu-item.magic svg {
+    color: var(--magic);
+}
+
+.menu-item.magic:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--magic) 10%, transparent)
+}
+
+.menu-item .lbl {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.menu-item .sub {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.menu-item .check {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    visibility: hidden;
+}
+
+.menu-item.checked .check {
+    visibility: visible;
+}
+
+.menu-item .check svg {
+    width: 15px;
+    height: 15px;
+    stroke: var(--accent);
+    stroke-width: 2.4;
+    color: var(--accent);
 }
