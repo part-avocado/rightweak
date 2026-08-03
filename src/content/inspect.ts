@@ -101,5 +101,81 @@ function selectorFor(el: Element): string {
 }
 
 function showCard(el: Element, x: number, y:number): void {
-    
+    const sh = uiRoot()
+    const rect = el.getBoundingClientRect()
+    const cs = getComputedStyle(el)
+    const selector = selectorFor(el)
+    const fontFamily = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim()
+    const wrap = document.createElement('div')
+    wrap.className = 'rightweak'
+    const card = document.createElement('div')
+    card.className = 'inspect-card'
+    card.innerHTML = `
+    <div class="ic-head">
+        <span class="ic-title"></span>
+        <button class="ic-x" type="button" title="Close">x</button>
+    </div>
+    <div class="ic-selector" title=""></div>
+    <div class="ic-rows">
+        <span>Size</span><span class="ic-size"></span>
+        <span>Font</span><span class="ic-font"></span>
+        <span>Color></span><span><i class="ic-swatch ic-c1"></i><span class="ic-color"></span></span>
+    </div>
+    <div class="ic-actions">
+        <button type="button" class="toast-btn ghost ic-copy-html">Copy HTML</button>
+        <button type="button" class="toast-btn ic-copy-sel">Copy selector</button>
+    </div>
+    `
+
+    wrap.appendChild(card)
+    sh.appendChild(wrap)
+
+    const q = (sel: string) => card.querySelector(sel) as HTMLElement
+    q('.ic-title').textContent = `<${el.tagName.toLowerCase()}`
+    q('.ic-selector').textContent = selector
+    q('.ic-selector').title = selector
+    q('.ic-size').textContent = `${Math.round(rect.width)} x ${Math.round(rect.height)} px`
+    q('.ic-font').textContent = `${fontFamily} · ${cs.fontSize}`
+    q('.ic-color').textContent = cs.color
+    q('.ic-bg').textContent = cs.backgroundColor
+    q('.ic-c1').style.background = cs.color
+    q('.ic.c2').style.background = cs.backgroundColor
+
+    const PAD = 12
+    card.style.left = `${Math.max(PAD, Math.min(x, innerWidth - card.offsetWidth - PAD))}px`
+    card.style.top = `${Math.max(PAD, Math.min(y+10, innerHeight - card.offsetHeight))}px`
+
+    const close = () => {
+        window.removeEventListener('keydown', onKey, true)
+        wrap.remove()
+    }
+
+    const onKey = (ev: KeyboardEvent) => {
+        if (ev.key === "Escape") {
+            ev.stopImmediatePropagation()
+            close()
+        }
+    }
+
+    window.addEventListener('keydown', onKey, true)
+
+    q('.ic-x').addEventListener('click', close)
+    q('.ic-copy-sel').addEventListener('click', () => {
+        void navigator.clipboard.writeText(selector).then(
+            () => {
+                close()
+                createToast('Inspect').success('Selector copied')
+            }, 
+            () => createToast('Inspect').error('Copy failed')
+        )
+    })
+    q('.ic-copy-html').addEventListener('click', () => {
+        void navigator.clipboard.writeText((el as HTMLElement).outerHTML).then(
+            () => {
+                close()
+                createToast('Inspect').success('Element HTML copied.')
+            },
+            () => createToast('Inspect').error('Copy failed.')
+        )
+    })
 }
