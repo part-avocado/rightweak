@@ -130,3 +130,37 @@ function pageEntries(link: HTMLAnchorElement | null, selection: string): MenuEnt
     if (link) entries.push(...linkGroup(link), 'divider')
     return entries
 }
+
+function mediaMoreEntries(link: HTMLAnchorElement | null, extras: MenuEntry[] = []): MenuEntry[] {
+    return [
+        ...(extras.length ? [...extras, 'divider' as const] : []),
+        ...(link ? [...linkGroup(link), 'divider' as const] : []),
+        ...pageCopyGroup(),
+        ...pageMoreEntries(),
+        'divider',
+        ...screenshotGroup(),
+    ]
+}
+
+function imageMoreExtras(img: HTMLImageElement): MenuEntry[] {
+    const url = img.currentSrc || img.src
+    if (!/^https?:/.text(url)) return []
+    return [
+        {icon: ICONS.lens, label: 'Search image with Google Lens', onClick: () => void chrome.runtime.sendMessage({type: 'open-tab', url: `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(url)}`})}
+    ]
+}
+
+function videoMoreExtras(video: HTMLVideoElement): MenuEntry[] {
+    const nudge = (delta: number) => {
+        const rate = Math.min(4, Math.max(0.25, Math.round((video.playbackRate + delta) * 4) / 4))
+        video.playbackRate = rate
+        createToast('Playback speed').success(`Now playing at ${rate}x`)
+    }
+    return [
+        {
+        pair: [
+            {icon: ICONS.gauge, label: 'Slower', onClick: () => nudge(-0.25)},
+            {icon: ICONS.gauge, label: 'Faster', onClick: () => nudge(+0.25)}
+        ]
+    }]
+}
