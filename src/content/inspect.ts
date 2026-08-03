@@ -40,4 +40,66 @@ export function startInpsector(): void {
         tag.style.left = `${Math.max(8, Math.min(r.left, innerWidth - 260))}px`
         tag.style.top = r.top > 34 ? `${r.top - 28}px` : `${r.bottom + 6}px`
     }
+
+    const onMove = (ev: PointerEvent) => {
+        const el = document.elementFromPoint(ev.clientX, ev.clientY)
+        highlight(el && el !== document.documentElement && el !== document.body ? el : null)
+    }
+
+    const stop = () => {
+        active = false
+        document.documentElement.style.cursor = prevCursor
+        window.removeEventListener('pointermove', onMove, true)
+        window.removeEventListener('pointerdown', onPick, true)
+        window.removeEventListener('click', swallow, true)
+        window.removeEventListener('contextmenu', swallow, true)
+        window.removeEventListener('keydown', onkeydown, true)
+        wrap.remove()
+    }
+
+    const swallow = (ev: Event) => {
+        ev.preventDefault()
+        ev.stopImmediatePropagation()
+    }
+
+    const onkeydown = (ev: KeyboardEvent) => {
+        if (ev.key === 'Escape') {
+            swallow(ev)
+            stop()
+        }
+    }
+
+    const onPick = (ev: PointerEvent) => {
+        swallow(ev)
+        const el = current
+        stop()
+        if (el) showCard(el, ev.clientX, ev.clientY)
+    }
+}
+
+function selectorFor(el: Element): string {
+    if (el.id) return `#${CSS.escape(el.id)}`
+    const parts: string[] = []
+    let cur: Element | null = el
+    while (cur && cur !== document.body && cur !== document.documentElement && parts.length < 4) {
+        if (cur.id) {
+            parts.unshift(`#${CSS.escape(cur.id)}`)
+            break
+        }
+        let part = cur.tagName.toLowerCase()
+        const classes = [...cur.classList].slice(0,2)
+        if (classes.length) {
+            part += classes.map((c) => `.${CSS.escape(c)}`).join('')
+        } else if (cur.parentElement) {
+            const same = [...cur.parentElement.children].filter((n)=> n.tagName === cur!.tagName)
+            if (same.length > 1) part += `:nth-of-type(${same.indexOf(cur)+1})`
+        }
+        parts.unshift(part)
+        cur = cur.parentElement
+    }
+    return parts.join(' > ')
+}
+
+function showCard(el: Element, x: number, y:number): void {
+    
 }
