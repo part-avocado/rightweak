@@ -416,3 +416,249 @@
     gap: 8px;
     margin-top: 12px;
 }
+
+/* toasts */
+
+.toasts {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 2147483647;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 344px;
+    max-width: calc(100vw - 32px);
+}
+
+.toast {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 13px 14px;
+    animation: rightweak-slide-in 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.15);
+}
+
+.toast.closing {
+    animation: rightweak-slide-out 0.18s ease-in forwards;
+}
+
+@keyframes rightweak-slide-out {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    } to {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+}
+
+@keyframes rightweak-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.97);
+    } to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.toast-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.toast-icon {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+}
+
+.toast-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.toast-icon .spin {
+    animation: rightweak-rotate 0.9s linear infinite;
+    stroke: var(--accent);
+}
+
+@keyframes rightweak-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.toast-icon .ok {
+    stroke: var(--success);
+}
+
+.toast-icon .err {
+    stroke: var(--danger);
+}
+
+.toast-title {
+    flex: 1 1 auto;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.toast-x {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font:inherit;
+}
+
+.toast-x:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+}
+
+.toast-x svg {
+    width:13px;
+    height: 13px;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: rount;
+}
+
+.toast-body {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 7px;
+}
+
+.toast-preview {
+    flex: 0 0 auto;
+    width: 46px;
+    height: 46px;
+    border-radius: 9px;
+    border: 1px solid var(--border);
+    display:none;
+    overflow: hidden;
+    background: linear-gradient(45deg, var(--checker) 25%, transparent 25%, transparent 75%, var(--checker) 75%) 0 0 / 12px 12px, linear-gradient(45deg, var(--checker) 25%, transparent 25%, transparent 75%, var(--checker) 75%) 6px 6px / 12px 12px, var(--bg-soft)
+}
+
+.toast.has-preview .toast-preview {
+    display: block;
+}
+
+.toast-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.toast-info {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.toast-stage {
+    font-size: 12px;
+    color: var(--text-muted);
+    min-height: 16px;
+}
+
+.toast.success .toast.stage {
+    color: var(--text);
+}
+
+.toast-track {
+    margin-top: 8px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--track);
+    overflow: hidden;
+    position: relative;
+}
+
+.toast-bar {
+    margin-top: 8px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--track);
+    overflow: hidden;
+    position: relative;
+}
+
+.toast-bar {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--magic));
+    width: 0%;
+    transition: width 0.25s ease;
+}
+
+.toast-track.indeterminate .toast-bar {
+    width: 34%;
+    animation: rightweak-indet 1.1s ease-in-out infinite;
+}
+
+@keyframes rightweak-indet {
+    0% {
+        transform: translateX(-110%);
+    } 100% {
+        transform: translateX(320%);
+    }
+}
+
+.toast-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.toast-btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 6px 13px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    background: var(--accent);
+    color: #fff;
+}
+
+.toast-btn:hover {
+    filter: brightness(1.08);
+}
+
+.toast-btn.ghost {
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.toast-btn.ghost:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+    filter: none;
+}
+
+.toast.success .toast-track,
+.toast.error .toast-track {
+    display: none;
+}
+
+.toast.error .toast-stage {
+    color: var(--danger)
+}
