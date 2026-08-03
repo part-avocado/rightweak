@@ -214,3 +214,30 @@ function iamageEntries(img: HTMLImageElement): MenuEntry[] {
         {icon: ICONS.copy, label: 'Copy image', sublabel: fmt ?? undefined, onClick: job('copy-png')}
     ]
 }
+
+function imageFormat(url: string): string | null {
+    const names: Record<string, string> = {
+        jpg: 'JPEG',
+        jpeg: 'JPEG',
+        png: 'PNG',
+        webp: 'WebP',
+        gif: 'GIF',
+        svg: 'SVG',
+        'svg+xml': 'SVG',
+        avif: 'AVIF',
+        bmp: 'BMP',
+        ico: 'ICO',
+        'x-icon': 'ICO',
+        'vnd.microsoft.icon': 'ICO',
+    }
+
+    if (url.startsWith('data:')) {
+        const m = url.match(/^data:image\/([a-z0-9.+-]+)/i)
+        return m ? (names[m[1].toLowerCase()] ?? m[1].toUpperCase()) : null
+    } try {
+        const m = new URL(url, location.href).pathname.toLowerCase().match(/\.([a-z0-9]+)$/)
+        return m ? (names[m[1]] ?? null) : null
+    } catch {
+        return null
+    }
+}
