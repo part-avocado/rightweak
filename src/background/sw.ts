@@ -17,6 +17,23 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
 })
 
+async function handleScreenshot(
+    msg: {type: 'screenshot'} | {type: 'screenshot-save'; filename: string},
+    sender: chrome.runtime.MessageSender,
+): Promise<{ok: boolean; dataUrl?: string; error?: string}> {
+    try {
+        const windowId = sender.tab?.windowId ?? chrome.windows.WINDOW_ID_CURRENT
+        const dataUrl = await chrome.tabs.captureVisibleTab(windowId, {format: 'png'})
+        if (msg.type === 'screenshot-save') {
+            await chrome.downloads.download({url: dataUrl, file:msg.filename, saveAs: true})
+            return {ok: true}
+        }
+        return {ok:true, dataUrl}
+    } catch (err) {
+        return {ok:false, error: friendlyError(err)}
+    }
+}
+
 //employment
 
 interface Job {
