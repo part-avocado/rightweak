@@ -125,8 +125,8 @@ function cancelJob(job: Job): void {
             .sendMessage({target: 'offscreen', op: 'cancel', jobId: job.id} satisfies OffscreenReq)
             .catch(() => {})
     } 
-    OffscreenPadding.get(job.id)?.reject(new Error('cancelled'))
-    OffscreenPadding.delete(job)
+    offscreenPending.get(job.id)?.reject(new Error('cancelled'))
+    offscreenPending.delete(job.id)
 }
 
 function finish(job: Job, dataUrl?: string, preview?: string): void {
@@ -187,6 +187,7 @@ function bufToBase64(buf: ArrayBuffer): string {
     for (let i = 0; i < bytes.length; i += CHUNK) {
         bin += String.fromCharCode(...bytes.subarray(i, i+CHUNK))
     }
+    return bin
 }
 
 function friendlyError(err: unknown): string {
@@ -296,7 +297,7 @@ async function noBgJob(job: Job, req: JobRequest): Promise<void> {
     await ensureOffscreen()
     throwIfAborted(job)
     const deliver = req.kind === 'copy-png-nobg' ? 'dataUrl' : 'blobUrl'
-    const result = await offscreenCall(job, {target: 'offcreen', op: 'removebg', jobId: job.id, url: req.url, deliver})
+    const result = await offscreenCall(job, {target: 'offscreen', op: 'removebg', jobId: job.id, url: req.url, deliver})
     throwIfAborted(job)
     if (req.kind === 'save-png-nobg') {progress(job, 'Starting download...')
         await chrome.downloads.download({url: result.blobUrl, filename: `${req.filename}.png`, saveAs: true})
@@ -334,4 +335,11 @@ async function looksLikeMp4(url: string, signal: AbortSignal): Promise<boolean> 
     } catch {
         return false
     }
+}
+
+function offscreenCall(job: Job, req: OffscreenReq): Promise<OffscreenResult> {
+    return new Promise((resolve, reject) => {
+        offscreenPending.set(job.id, {resolve, reject})
+        chrome.runtime.sendMessage(req).catch(reject)
+    })
 }
