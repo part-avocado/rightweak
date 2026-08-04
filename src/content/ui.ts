@@ -364,14 +364,14 @@ export function createToast(title: string, onCancel?: () => void): ToastHandle {
     <div class="toast-head">
         <span class="toast-icon">${svg_spinner}</span>
         <span class="toast-title"></span>
-        <button class="toast-x" type="button" title="Cancel">${svg_x}</button
+        <button class="toast-x" type="button" title="Cancel">${svg_x}</button>
     </div>
     <div class="toast-body">
         <span class="toast-preview"><img alt=""></span>
         <span class="toast-info">
             <div class="toast-stage">Starting...</div>
             <div class="toast-track indeterminate"><div class="toast-bar"></div></div>
-        </span
+        </span>
     </div>
     <div class="toast-actions" hidden></div>
     `
