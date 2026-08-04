@@ -30,5 +30,5 @@ export default defineManifest({
         sandbox: "sandbox allow-scripts; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' data: blob:;", // fsr I have to include wasm unsafe eval, even though the eval is safe :sobb:
     },
     sandbox: { pages: ['src/sandbox/sandbox.html'] }, 
-    web_accesible_resources: [ {resources: ['imgly/*', 'ort/*'], matches: ['<all_urls>']}, ],
+    web_accessible_resources: [ {resources: ['imgly/*', 'ort/*'], matches: ['<all_urls>']}, ],
 } as never)
