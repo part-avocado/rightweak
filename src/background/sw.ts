@@ -73,6 +73,18 @@ async function executeJob(job: Job, req: JobRequest): Promise<void> {
     }
 }
 
+function send(job: Job, m: PortMessageTo): void {
+    try {
+        job.port.postMessage(m)
+    } catch {
+//      content has flown away
+    }
+}
+
+function progress(job: Job, stage: string, ratio?: number): void {
+    send(job, {type:'progress', stage, ratio})
+}
+
 // helping tools
 function throwIfAborted(job: Job): void {
     if (job.ctl.signal.aborted) throw new Error('cancelled')
@@ -153,4 +165,17 @@ async function ensureOffscreen(): Promise<void> {
             creatingOffscreeen = null
         })
     await creatingOffscreeen
+}
+
+function handleOffscreenEvent(ev: OffscreenEvnt): void {
+    const job = jobs.get(ev.jobId)
+    if (ev.ev === 'progress') {
+        if (job && !job.settled) progress(job, ev.stage, ev.ratio)
+        return
+    }
+    const pending = offscreenPending.get(ev.jobId)
+    if (!pending) return
+    offscreenPending.delete(ev.jobId)
+    if (ev.ok) pending.resolve({dataUrl: ev.dataUrl, blobUrl: ev.blobUrl, preview: ev.preview})
+    else pending.reject(new Error(ev.error))
 }
