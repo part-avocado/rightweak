@@ -141,11 +141,11 @@ async function rasterize(jobId:string,url:string,deliver: 'dataUrl' | 'blobUrl')
     try {
         const img = new Image()
         img.src = objecturl
-        await img.decode
+        await img.decode()
         const canvas = document.createElement('canvas')
         canvas.width = img.naturalWidth || 1024
         canvas.height = img.naturalHeight || 1024
-        canvas.getContext('2d')!.drawImage(img,0,0,canvas.height, canvas.width)
+        canvas.getContext('2d')!.drawImage(img,0,0,canvas.width, canvas.height)
         const png = await new Promise<Blob>((resolve,reject) =>
             canvas.toBlob((b) => (b ?resolve(b): reject(new Error('PNG encoding failed.'))), 'image/png'),
         )
@@ -200,7 +200,7 @@ async function transcode(jobid:string, url:string): Promise<{blobUrl:string}>{
 async function doTranscode(jobId:string, url:string): Promise<{blobUrl:string}>{
     if (cancelled.has(jobId)) throw new Error('cancelled')
     const blob = await fetchBlob(url, jobId, 'Fetching video...')
-    if (blob.type.includes('vide/mp4')) {
+    if (blob.type.includes('video/mp4')) {
     report(jobId, 'Downloading...')
     return {blobUrl: URL.createObjectURL(blob)}
     }
@@ -220,7 +220,7 @@ async function doTranscode(jobId:string, url:string): Promise<{blobUrl:string}>{
             '-c:v', 'libx264',
             '-preset', 'veryfast',
             '-crf', '23',
-            '-pix_fmt', '-yuv420p',
+            '-pix_fmt', 'yuv420p',
             '-movflags', '+faststart',
             '-c:a', 'aac',
             '-b:a', '160k',
@@ -250,7 +250,7 @@ async function fetchBlob(url:string,jobId:string,stage:string): Promise<Blob> {
     } catch (err) {
         throw new Error(`fetch of ${url.slice(0,120)} failed. ${err instanceof Error ? err.message :err}`)
     }
-    if (!res.ok) throw new Error
+    if (!res.ok) throw new Error(`The server responded with ${res.status} ${res.statusText}.`)
     const total = Number(res.headers.get('content-length')) || 0
     if (!res.body || !total) return res.blob()
     const reader = res.body.getReader()
