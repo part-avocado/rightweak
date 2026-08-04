@@ -2,7 +2,7 @@ import {defineManifest} from '@crxjs/vite-plugin'
 
 export default defineManifest({
     manifest_version: 3,
-    version: '0.0.1',
+    version: '1.0.0',
     description: 'A Chrome extension that commandeers the right-click context menu for additional user friendliness.',
     icons: {
         16: 'icons/icon16.png',
