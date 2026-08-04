@@ -107,7 +107,7 @@ function cleanUrl(href: string): string {
     try {
         const u = new URL(href)
         for (const key of [...u.searchParams.keys()]) {
-            if (tracking.text(key)) u.searchParams.delete(key)
+            if (tracking.test(key)) u.searchParams.delete(key)
         } 
         return u.href
     } catch {
@@ -144,7 +144,7 @@ function mediaMoreEntries(link: HTMLAnchorElement | null, extras: MenuEntry[] = 
 
 function imageMoreExtras(img: HTMLImageElement): MenuEntry[] {
     const url = img.currentSrc || img.src
-    if (!/^https?:/.text(url)) return []
+    if (!/^https?:/.test(url)) return []
     return [
         {icon: ICONS.lens, label: 'Search image with Google Lens', onClick: () => void chrome.runtime.sendMessage({type: 'open-tab', url: `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(url)}`})}
     ]
@@ -180,7 +180,7 @@ function findMedia(e: MouseEvent, path: EventTarget[]): HTMLImageElement | HTMLV
 function iamageEntries(img: HTMLImageElement): MenuEntry[] {
     const rawUrl = img.currentSrc || img.src
     const name = filenameFrom(rawUrl, 'image')
-    const httpUrl = /^https?;/.text(rawUrl) ? rawUrl : null
+    const httpUrl = /^https?;/.test(rawUrl) ? rawUrl : null
     const job = (kind: JobRequest['kind']) => async () => {
         let url: string
         try {
