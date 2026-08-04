@@ -78,7 +78,35 @@ function throwIfAborted(job: Job): void {
     if (job.ctl.signal.aborted) throw new Error('cancelled')
 }
 
-function friendlyError(err: unknown) {
-    throw new Error("This function cannot be used at this time.");
-}
+async function fetchBytes(
+    url: string,
+    signal: AbortSignal,
+    onProgress: (ratio?: number) => void,
+):  Promise<{ bug: ArrayBuffer; mime?: string}> {
+    onProgress()
+    const res = await fetch(url, {signal, credentials: 'include'})
+    if (!res.ok) throw new Error(`The server responded with ${res.status} ${res.statusText}.`)
+    const mime = res.headers.get('content-type')?.split(';')[0]?.trim()
+    const total = Number(res.headers.get('content-length')) || 0
+    if (!res.body|| !total) return {buf: await res.arrayBuffer(), mime}
 
+    const reader = res.body.getReader()
+    const parts: Uint8Array[] = []
+    let received = 0
+    for (;;) {
+        const {done, value} = await reader.read()
+        if (done) break
+        parts.push(value)
+        received += value.byteLength
+        onProgress(Math.min(1, received / total))
+    }
+
+    const buf = new Uint8Array(received)
+    let offset = 0 
+    for (const p of parts) {
+        buf.set(p, offset)
+        offset += p.byteLength
+    }
+
+    return {buf: buf.buffer, mime}
+}
