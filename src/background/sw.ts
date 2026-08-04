@@ -131,4 +131,5 @@ function friendlyError(err: unknown): string {
     const msg = err instanceof Error ? err.message : String(err)
     if (msg === 'cancelled' || /abort/i.test(msg)) return 'cancelled'
     if (/^failed to fetch$/i.test(msg)) return "Couldn't fetch this file. The site may have blocked access."
+    return msg
 }
