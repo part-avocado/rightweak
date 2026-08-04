@@ -124,8 +124,15 @@ function cancelJob(job: Job): void {
         void chrome.runtime
             .sendMessage({target: 'offscreen', op: 'cancel', jobId: job.id} satisfies OffscreenReq)
             .catch(() => {})
-    } OffscreenPadding.get(job.id)?.reject(new Error('cancelled'))
-    OffscreenPadding.delete(job.id)
+    } 
+    OffscreenPadding.get(job.id)?.reject(new Error('cancelled'))
+    OffscreenPadding.delete(job)
+}
+
+function finish(job: Job, dataUrl?: string, preview?: string): void {
+    if (job.settled) return
+    job.settled = true
+    send(job, {type: 'done', dataUrl, preview})
 }
 
 // helping tools
