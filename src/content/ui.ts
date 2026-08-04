@@ -130,6 +130,7 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
     const wrap = document.createElement('div')
     wrap.className = 'rightweak'
     const menu = document.createElement('div')
+    menu.className = 'menu'
     wrap.appendChild(menu)
 
     if (options.nav?.length) {
@@ -343,7 +344,7 @@ function stack(): HTMLDivElement {
     wrap.className = 'rightweak'
     toastStack = document.createElement('div')
     toastStack.className = 'toasts'
-    toastStack.appendChild(toastStack)
+    wrap.appendChild(toastStack)
     sh.appendChild(wrap)
     return toastStack
 }

@@ -37,7 +37,7 @@
         --bg-hover: #34383f;
         --text: #ecedf0;
         --text-muted: #9aa1ac;
-        --border: rgba(255.255.255.0.09);
+        --border: rgba(255,255,255,0.09);
         --accent: #6d93ff;
         --accent-soft: rgba(109,147,255,0.16);
         --magic: #a78bfa;
@@ -57,7 +57,7 @@
     overflow-y: auto;
     overscroll-behavior: contain;
     padding: 7px;
-    background: --var(--bg);
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 13px;
     box-shadow: var(--shadow);
@@ -68,7 +68,7 @@
 @keyframes magic-pop {
     from {
         opacity:0;
-        transcorm: scale(0.94)
+        transform: scale(0.94)
     }
     to {
         opacity: 1;
@@ -534,7 +534,7 @@
     height: 13px;
     stroke: currentColor;
     stroke-width: 2;
-    stroke-linecap: rount;
+    --stroke-linecap: round;
 }
 
 .toast-body {
