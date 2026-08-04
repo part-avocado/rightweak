@@ -3,6 +3,20 @@ import { port_name } from "../shared/protocol";
 import type { JobRequest, OffscreenEvnt,OffscreenReq, PortMessageFrom, PortMessageTo } from "../shared/protocol";
 const offscreenurl = 'src/offscreen/offscreen.html'
 
+// osm
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg?.type === 'open-tab' && typeof msg.url === 'string' && /^http?:/.test(msg.url)) {
+        void chrome.tabs.create({url: msg.url, index: sender.tab ? sender.tab.index + 1 : undefined})
+    } else if (msg?.type === 'reload-hard') {
+        if (sender.tab?.id !== undefined) void chrome.tabs.reload(sender.tab.id, {bypassCache:true})
+    } else if (msg?.type === 'screenshot' || msg?.type === 'screenshot-save') {
+        void handleScreenshot(msg, sender).then(sendResponse)
+        return true
+    } else if (msg?.target === 'sw') {
+        handleOffscreenEvent(msg as OffscreenEvnt)
+    }
+})
+
 //employment
 
 interface Job {
