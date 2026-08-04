@@ -75,6 +75,12 @@ export function startInpsector(): void {
         stop()
         if (el) showCard(el, ev.clientX, ev.clientY)
     }
+
+    window.addEventListener('pointermove', onMove, true)
+    window.addEventListener('pointerdown', onPick, true)
+    window.addEventListener('click', swallow, true)
+    window.addEventListener('contextmenu', swallow, true)
+    window.addEventListener('keydown', onkeydown, true)
 }
 
 function selectorFor(el: Element): string {
