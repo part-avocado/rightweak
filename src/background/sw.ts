@@ -133,3 +133,24 @@ function friendlyError(err: unknown): string {
     if (/^failed to fetch$/i.test(msg)) return "Couldn't fetch this file. The site may have blocked access."
     return msg
 }
+
+// offscreen stuff
+let creatingOffscreeen: Promise<void> | null = null
+
+async function ensureOffscreen(): Promise<void> {
+    if (await chrome.offscreen.hasDocument()) return
+    creatingOffscreeen ??= chrome.offscreen
+        .createDocument({
+            url: offscreenurl,
+            reasons: [chrome.offscreen.Reason.BLOBS, chrome.offscreen.Reason.WORKERS],
+            justification: 'Runs on-device magic background removal and video transcoding, and creates blob URLs for downloads.',
+        })
+        .catch((err) => {
+            if (!String(err).toLowerCase().includes('single offscreen')) throw err
+        })
+        .then(() => undefined)
+        .finally(() => {
+            creatingOffscreeen = null
+        })
+    await creatingOffscreeen
+}
