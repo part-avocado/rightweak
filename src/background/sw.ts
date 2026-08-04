@@ -243,3 +243,35 @@ async function rasterizeInOffscreen(job: Job, url: string, mime: string | undefi
     if (!result.dataUrl) throw new Error(`Unable to decode this image${mime ? `(${mime})` : ''}.`)
     return result.dataUrl
 }
+
+//employment mgmt
+async function saveOriginal(job: Job, req: JobRequest): Promise<void> {
+    progress(job, 'Saving...')
+    const options: chrome.downloads.DownloadOptions = {url: req.url, saveAs: true}
+    if (req.url.startsWith('data:')) options.filename = `${req.filename}.png`
+    await chrome.downloads.download(options)
+    finish(job)
+}
+
+async function pngJob(job: Job, req: JobRequest): Promise<void> {
+    const  {buf, mime} = await fetchBytes(req.url, job.ctl.signal, (r) => progress(job, 'Fetching image...', r))
+    throwIfAborted(job)
+    progress(job, 'Converting to PNG...')
+
+    let pngDataUrl: string
+    try {
+        pngDataUrl = await convertToPngUrl(buf)
+    } catch {
+        pngDataUrl = await rasterizeInOffscreen(job, req.url, mime)
+    }
+
+    throwIfAborted(job)
+    if (req.kind === 'save-png') {
+        progress(job, 'Starting download...')
+        const preview = await makeThumb(pngDataUrl).catch(() => undefined)
+        await chrome.downloads.download({url: pngDataUrl, filename: `${req.filename}.png`, saveAs: true})
+        finish(job, undefined, preview)
+    } else {
+        finish(job, pngDataUrl)
+    }
+}
