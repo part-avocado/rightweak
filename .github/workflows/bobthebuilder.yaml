@@ -1,0 +1,38 @@
+name: Bob the Builder
+
+on:
+  push:
+    branches: ['**']
+  
+concurrency:
+  group: bob-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  buildcommit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Commit build
+        run: |
+          git config user.name "bob-the-builder[bot]"
+          git config user.email "bob-the-builder[bot]@users.noreply.github.com"
+          git add -f dist
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: build dist/ [skip ci]"
+          git push origin HEAD:${{ github.ref_name}}
