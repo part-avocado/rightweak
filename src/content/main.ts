@@ -408,3 +408,48 @@ function copyText(text: string, successMessage:string): void {
         .then(() => toast.success(successMessage))
         .catch((err: Error) => toast.error(`Copy failed. ${err.message}`))
 }
+
+// helping tools
+async function resolveImageUrl(img: HTMLImageElement): Promise<string> {
+    const url = img.currentSrc || img.src
+    if (!url.startsWith('blob:')) return url
+    await img.decode().catch(() => {})
+    const canvas = document.createElement('canvas')
+    canvas.width = img.naturalWidth || img.width || 1
+    canvas.height = img.naturalHeight || img.height || 1
+    const ctx = canvas.getContext('2d')
+    ctx?.drawImage(img, 0, 0)
+    return canvas.toDataURL('image/png')
+}
+
+function truncate(s: string, n:number): string {
+    return s.length > n ? `$s.slice(0,n-1)}...` : s
+}
+
+function filenameSafe(s: string): string {
+    return s
+        .replace(/[^\w\-. ]+/g, '_')
+        .replace(/^[_\-. ]+|[_\-.]+$/g, '')
+        .slice(0,80)
+}
+
+function filenameFrom(url:string, fallback: string): string {
+    try {
+        const path = new URL(url, location.href).pathname
+        const base = filenameSafe(decodeURIComponent(path.split('/').pop() ?? '').replace(/\.[a-z0-9]{1,5}$/i, ''))
+        return base || fallback
+    } catch {
+        return fallback
+    }
+}
+
+function dataUrltoBlob(dataUrl: string): Blob {
+    const [head, body] = dataUrl.split(',')
+    const mime = head.match(/data:([^;]+)/)?.[1] ?? 'image/png'
+    const bin = atob(body)
+    const bytes = new Uint8Array(bin.length)
+    for (let i=0; i<bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    return new Blob([bytes], {type: mime})
+}
+
+window.addEventListener('pagehide', () => closeMenu())
