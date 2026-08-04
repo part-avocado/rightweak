@@ -275,3 +275,17 @@ async function pngJob(job: Job, req: JobRequest): Promise<void> {
         finish(job, pngDataUrl)
     }
 }
+
+async function makeThumb(pngDataUrl: string): Promise<string> {
+    const blob = await (await fetch(pngDataUrl)).blob()
+    const bitmap = await createImageBitmap(blob)
+    const scale = Math.min(1, 92 / Math.max(bitmap.width, bitmap.height))
+    const canvas = new OffscreenCanvas(
+        Math.max(1, Math.round(bitmap.width * scale)),
+        Math.max(1, Math.round(bitmap.height * scale))
+    )
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+    bitmap.close()
+    const out = await canvas.convertToBlob({type: 'image/png'})
+    return `data:image/png;base64,${bufToBase64(await out.arrayBuffer())}`
+}
