@@ -116,6 +116,18 @@ function progress(job: Job, stage: string, ratio?: number): void {
     send(job, {type:'progress', stage, ratio})
 }
 
+function cancelJob(job: Job): void {
+    if (job.settled) return
+    job.settled = true
+    job.ctl.abort()
+    if (job.useOffscreen) {
+        void chrome.runtime
+            .sendMessage({target: 'offscreen', op: 'cancel', jobId: job.id} satisfies OffscreenReq)
+            .catch(() => {})
+    } OffscreenPadding.get(job.id)?.reject(new Error('cancelled'))
+    OffscreenPadding.delete(job.id)
+}
+
 // helping tools
 function throwIfAborted(job: Job): void {
     if (job.ctl.signal.aborted) throw new Error('cancelled')
