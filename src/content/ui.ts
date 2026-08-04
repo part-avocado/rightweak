@@ -23,7 +23,7 @@ function root(): ShadowRoot {
 
 export const ICONS = {
     savePng: '<svg viewBox="0 0 24 24"><path d="M12 3v11m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>',
-    copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"><path d="M5 12H4a2 2 0 0 1-2-2V4a2 2 0 0 1 22-2h9a2 2 0 0 1 2 2v1"/></svg>',
+    copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 12H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
     magic: '<svg viewBox="0 0 24 24"><path d="m5 19 9-9m2.5-2.5L19 5M15 5l.9 2.1L18 8l-2.1.9L15 11l-.9-2.1L12 8l2.1-.9zM19 12l.6 1.4L21 14l-1.4.6L19 16l-.6-1.4L17 14l1.4-.6zM7 3l.6 1.4L9 5l-1.4.6L7 7l-.6-1.4L5 5l1.4-.6z"/></svg>',
     film: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 10h4M3 14h4M17 10h4M17 14h4"/></svg>',
     newTab: '<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4 11 13M18 13v6a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V8a1.5 1.5 0 0 1 1.5-1.5H11"/></svg>',

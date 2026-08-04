@@ -68,7 +68,7 @@ function linkGroup(link: HTMLAnchorElement): MenuEntry[] {
     return [
         {icon: ICONS.newTab, label: 'Open link in new tab', onClick: () => void chrome.runtime.sendMessage({type: "open-tab", url: link.href})},
         {icon: ICONS.link, label: "Copy link address", sublabel: link.href, onClick: () => copyText(link.href, 'Link address copied')},
-        ...(text ? [{icon: ICONS.text, label: 'Copy link text', sublabel: `"${truncate(text,40)}`, onClick: () => copyText(text, 'Link text copied')} satisfies MenuEntry] : [])
+        ...(text ? [{icon: ICONS.text, label: 'Copy link text', sublabel: `"${truncate(text,40)}"`, onClick: () => copyText(text, 'Link text copied')} satisfies MenuEntry] : [])
     ]
 }
 
@@ -120,7 +120,7 @@ function pageEntries(link: HTMLAnchorElement | null, selection: string): MenuEnt
 
     if (selection) {
         entries.push(
-            {icon: ICONS.copy, label: 'Copy', sublabel: `"${truncate(selection, 40)}"`, onClick: () => copyText(selection, 'Coped to clipboard')},
+            {icon: ICONS.copy, label: 'Copy', sublabel: `"${truncate(selection, 40)}"`, onClick: () => copyText(selection, 'Copied to clipboard')},
             {icon: ICONS.search, label: 'Search with Google', sublabel: `"${truncate(selection, 40)}"`, onClick: () => void chrome.runtime.sendMessage({type: 'open-tab', url: `https://www.google.com/search?q=${encodeURIComponent(selection)}`,})
         },
         'divider',
@@ -180,7 +180,7 @@ function findMedia(e: MouseEvent, path: EventTarget[]): HTMLImageElement | HTMLV
 function iamageEntries(img: HTMLImageElement): MenuEntry[] {
     const rawUrl = img.currentSrc || img.src
     const name = filenameFrom(rawUrl, 'image')
-    const httpUrl = /^https?;/.test(rawUrl) ? rawUrl : null
+    const httpUrl = /^https?:/.test(rawUrl) ? rawUrl : null
     const job = (kind: JobRequest['kind']) => async () => {
         let url: string
         try {
@@ -291,7 +291,7 @@ function titleFor(kind: JobRequest['kind']): string {
 async function screenshotSave(): Promise<void> {
     const filename = `${filenameSafe(document.title) || 'screenshot'}.png`
     const res = (await chrome.runtime
-        .sendMessage({ttype:'screenshot-save', filename})
+        .sendMessage({type:'screenshot-save', filename})
         .catch((err: Error) => ({ok: false, error: err.message}))) as {ok:boolean; error?:string}
     const toast = createToast('Save screenshot')
     if (res?.ok) toast.success('Download started')
@@ -423,7 +423,7 @@ async function resolveImageUrl(img: HTMLImageElement): Promise<string> {
 }
 
 function truncate(s: string, n:number): string {
-    return s.length > n ? `$s.slice(0,n-1)}...` : s
+    return s.length > n ? `${s.slice(0,n-1)}...` : s
 }
 
 function filenameSafe(s: string): string {

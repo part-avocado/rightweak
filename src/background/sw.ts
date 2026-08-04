@@ -1,7 +1,7 @@
 // The service worker YAYYYY
 import { port_name } from "../shared/protocol";
 import type { JobRequest, OffscreenEvnt,OffscreenReq, PortMessageFrom, PortMessageTo } from "../shared/protocol";
-const offscreenurl = 'src/offscreen/offscreen.html'
+const offscreenurl = 'src/offscreen/sandbox.html'
 
 // osm
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -327,7 +327,7 @@ async function videoJob(job: Job, req: JobRequest): Promise<void> {
 }
 
 async function looksLikeMp4(url: string, signal: AbortSignal): Promise<boolean> {
-    if (/\.(mp4|m4v)(\?|#|#)/i.test(url)) return true
+    if (/\.(mp4|m4v)(\?|#|$)/i.test(url)) return true
     try {
         const res = await fetch(url, {method: 'HEAD', signal, credentials: 'include'})
         const type = res.headers.get('content-type') ?? ''

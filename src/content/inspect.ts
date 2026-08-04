@@ -119,7 +119,8 @@ function showCard(el: Element, x: number, y:number): void {
     <div class="ic-rows">
         <span>Size</span><span class="ic-size"></span>
         <span>Font</span><span class="ic-font"></span>
-        <span>Color></span><span><i class="ic-swatch ic-c1"></i><span class="ic-color"></span></span>
+        <span>Color</span><span><i class="ic-swatch ic-c1"></i><span class="ic-color"></span></span>
+        <span>Background</span><span><i class="ic-swatch ic-c2"></i><span class="ic-bg"></span></span>
     </div>
     <div class="ic-actions">
         <button type="button" class="toast-btn ghost ic-copy-html">Copy HTML</button>
@@ -139,7 +140,7 @@ function showCard(el: Element, x: number, y:number): void {
     q('.ic-color').textContent = cs.color
     q('.ic-bg').textContent = cs.backgroundColor
     q('.ic-c1').style.background = cs.color
-    q('.ic.c2').style.background = cs.backgroundColor
+    q('.ic-c2').style.background = cs.backgroundColor
 
     const PAD = 12
     card.style.left = `${Math.max(PAD, Math.min(x, innerWidth - card.offsetWidth - PAD))}px`
