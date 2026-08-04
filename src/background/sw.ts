@@ -79,34 +79,50 @@ function throwIfAborted(job: Job): void {
 }
 
 async function fetchBytes(
-    url: string,
-    signal: AbortSignal,
-    onProgress: (ratio?: number) => void,
-):  Promise<{ bug: ArrayBuffer; mime?: string}> {
-    onProgress()
-    const res = await fetch(url, {signal, credentials: 'include'})
-    if (!res.ok) throw new Error(`The server responded with ${res.status} ${res.statusText}.`)
-    const mime = res.headers.get('content-type')?.split(';')[0]?.trim()
-    const total = Number(res.headers.get('content-length')) || 0
-    if (!res.body|| !total) return {buf: await res.arrayBuffer(), mime}
+  url: string,
+  signal: AbortSignal,
+  onProgress: (ratio?: number) => void,
+): Promise<{ buf: ArrayBuffer; mime?: string }> {
+  onProgress()
+  const res = await fetch(url, { signal, credentials: 'include' })
+  if (!res.ok) throw new Error(`The server responded with ${res.status} ${res.statusText}.`)
+  const mime = res.headers.get('content-type')?.split(';')[0]?.trim()
+  const total = Number(res.headers.get('content-length')) || 0
+  if (!res.body || !total) return { buf: await res.arrayBuffer(), mime }
+  const reader = res.body.getReader()
+  const parts: Uint8Array[] = []
+  let received = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    parts.push(value)
+    received += value.byteLength
+    onProgress(Math.min(1, received / total))
+  }
+  const buf = new Uint8Array(received)
+  let offset = 0
+  for (const p of parts) {
+    buf.set(p, offset)
+    offset += p.byteLength
+  }
+  return { buf: buf.buffer, mime }
+}
 
-    const reader = res.body.getReader()
-    const parts: Uint8Array[] = []
-    let received = 0
-    for (;;) {
-        const {done, value} = await reader.read()
-        if (done) break
-        parts.push(value)
-        received += value.byteLength
-        onProgress(Math.min(1, received / total))
+
+async function convertToPngUrl(buf: ArrayBuffer): Promise<string> {
+    const bitmap = await createImageBitmap(new Blob([buf]))
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+    canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
+    bitmap.close()
+    const blob = await canvas.convertToBlob({type: 'image/png'})\
+    return `data:image/png;base64, ${bufToBase64(await blob.arrayBuffer())}`
+}
+
+function bufToBase64(buf: ArrayBuffer): string {
+    const bytes = new Uint8Array(buf)
+    let bin = ''
+    const CHUNK = 0x8000
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+        bin += String.fromCharCode(...bytes.subarray(i, i+CHUNK))
     }
-
-    const buf = new Uint8Array(received)
-    let offset = 0 
-    for (const p of parts) {
-        buf.set(p, offset)
-        offset += p.byteLength
-    }
-
-    return {buf: buf.buffer, mime}
 }
