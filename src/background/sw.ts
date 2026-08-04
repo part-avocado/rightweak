@@ -5,7 +5,7 @@ const offscreenurl = 'src/offscreen/offscreen.html'
 
 // osm
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg?.type === 'open-tab' && typeof msg.url === 'string' && /^http?:/.test(msg.url)) {
+    if (msg?.type === 'open-tab' && typeof msg.url === 'string' && /^https?:/.test(msg.url)) {
         void chrome.tabs.create({url: msg.url, index: sender.tab ? sender.tab.index + 1 : undefined})
     } else if (msg?.type === 'reload-hard') {
         if (sender.tab?.id !== undefined) void chrome.tabs.reload(sender.tab.id, {bypassCache:true})
@@ -25,7 +25,7 @@ async function handleScreenshot(
         const windowId = sender.tab?.windowId ?? chrome.windows.WINDOW_ID_CURRENT
         const dataUrl = await chrome.tabs.captureVisibleTab(windowId, {format: 'png'})
         if (msg.type === 'screenshot-save') {
-            await chrome.downloads.download({url: dataUrl, file:msg.filename, saveAs: true})
+            await chrome.downloads.download({url: dataUrl, filename:msg.filename, saveAs: true})
             return {ok: true}
         }
         return {ok:true, dataUrl}
@@ -177,7 +177,7 @@ async function convertToPngUrl(buf: ArrayBuffer): Promise<string> {
     canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
     bitmap.close()
     const blob = await canvas.convertToBlob({type: 'image/png'})
-    return `data:image/png;base64, ${bufToBase64(await blob.arrayBuffer())}`
+    return `data:image/png;base64,${bufToBase64(await blob.arrayBuffer())}`
 }
 
 function bufToBase64(buf: ArrayBuffer): string {
@@ -234,7 +234,7 @@ function handleOffscreenEvent(ev: OffscreenEvnt): void {
 async function rasterizeInOffscreen(job: Job, url: string, mime: string | undefined): Promise<string> {
     job.usesOffscreen = true
     await ensureOffscreen()
-    const result = await OffscreenCall(job, {
+    const result = await offscreenCall(job, {
         target: 'offscreen',
         op: 'topng',
         jobId: job.id,
@@ -300,7 +300,7 @@ async function noBgJob(job: Job, req: JobRequest): Promise<void> {
     const result = await offscreenCall(job, {target: 'offscreen', op: 'removebg', jobId: job.id, url: req.url, deliver})
     throwIfAborted(job)
     if (req.kind === 'save-png-nobg') {progress(job, 'Starting download...')
-        await chrome.downloads.download({url: result.blobUrl, filename: `${req.filename}.png`, saveAs: true})
+        await chrome.downloads.download({url: result.blobUrl!, filename: `${req.filename}.png`, saveAs: true})
         finish(job, undefined, result.preview)
     } else {
         finish(job, result.dataUrl)
@@ -319,7 +319,7 @@ async function videoJob(job: Job, req: JobRequest): Promise<void> {
     throwIfAborted(job)
     job.usesOffscreen = true
     await ensureOffscreen()
-    const result = await offscreenCall(job, {target: 'offscree', op: 'transcode', jobId: job.id, url: req.url})
+    const result = await offscreenCall(job, {target: 'offscreen', op: 'transcode', jobId: job.id, url: req.url})
     throwIfAborted(job)
     progress(job, 'Starting download...')
     await chrome.downloads.download({url: result.blobUrl!, filename: `${req.filename}.mp4`, saveAs: true})
