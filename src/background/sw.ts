@@ -40,7 +40,7 @@ interface Job {
     id: string
     port: chrome.runtime.Port
     ctl: AbortController
-    useOffscreen:boolean
+    usesOffscreen:boolean
     settled: boolean
 }
 
@@ -59,7 +59,7 @@ chrome.runtime.onConnect.addListener((port) => {
         id: crypto.randomUUID(),
         port,
         ctl: new AbortController(),
-        useOffscreen: false,
+        usesOffscreen: false,
         settled: false,
     }
     jobs.set(job.id, job)
@@ -120,7 +120,7 @@ function cancelJob(job: Job): void {
     if (job.settled) return
     job.settled = true
     job.ctl.abort()
-    if (job.useOffscreen) {
+    if (job.usesOffscreen) {
         void chrome.runtime
             .sendMessage({target: 'offscreen', op: 'cancel', jobId: job.id} satisfies OffscreenReq)
             .catch(() => {})
@@ -231,7 +231,7 @@ function handleOffscreenEvent(ev: OffscreenEvnt): void {
 }
 
 async function rasterizeInOffscreen(job: Job, url: string, mime: string | undefined): Promise<string> {
-    job.useOffscreen = true
+    job.usesOffscreen = true
     await ensureOffscreen()
     const result = await OffscreenCall(job, {
         target: 'offscreen',
@@ -288,4 +288,50 @@ async function makeThumb(pngDataUrl: string): Promise<string> {
     bitmap.close()
     const out = await canvas.convertToBlob({type: 'image/png'})
     return `data:image/png;base64,${bufToBase64(await out.arrayBuffer())}`
+}
+
+async function noBgJob(job: Job, req: JobRequest): Promise<void> {
+    job.usesOffscreen = true
+    progress(job, 'Preparing...')
+    await ensureOffscreen()
+    throwIfAborted(job)
+    const deliver = req.kind === 'copy-png-nobg' ? 'dataUrl' : 'blobUrl'
+    const result = await offscreenCall(job, {target: 'offcreen', op: 'removebg', jobId: job.id, url: req.url, deliver})
+    throwIfAborted(job)
+    if (req.kind === 'save-png-nobg') {progress(job, 'Starting download...')
+        await chrome.downloads.download({url: result.blobUrl, filename: `${req.filename}.png`, saveAs: true})
+        finish(job, undefined, result.preview)
+    } else {
+        finish(job, result.dataUrl)
+    }
+}
+
+async function videoJob(job: Job, req: JobRequest): Promise<void> {
+    progress(job, 'Checking video format...')
+    if (await looksLikeMp4(req.url, job.ctl.signal)) {
+        progress(job, 'Starting download...')
+        await chrome.downloads.download({url: req.url, filename: `${req.filename}.mp4`, saveAs: true})
+        finish(job)
+        return
+    }
+
+    throwIfAborted(job)
+    job.usesOffscreen = true
+    await ensureOffscreen()
+    const result = await offscreenCall(job, {target: 'offscree', op: 'transcode', jobId: job.id, url: req.url})
+    throwIfAborted(job)
+    progress(job, 'Starting download...')
+    await chrome.downloads.download({url: result.blobUrl!, filename: `${req.filename}.mp4`, saveAs: true})
+    finish(job)
+}
+
+async function looksLikeMp4(url: string, signal: AbortSignal): Promise<boolean> {
+    if (/\.(mp4|m4v)(\?|#|#)/i.test(url)) return true
+    try {
+        const res = await fetch(url, {method: 'HEAD', signal, credentials: 'include'})
+        const type = res.headers.get('content-type') ?? ''
+        return type.includes('video/mp4')
+    } catch {
+        return false
+    }
 }
