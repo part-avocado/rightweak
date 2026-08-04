@@ -1,0 +1,59 @@
+{
+  "name": "rightweak",
+  "manifest_version": 3,
+  "version": "1.0.0",
+  "description": "A Chrome extension that commandeers the right-click context menu for additional user friendliness.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "service-worker-loader.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "assets/main.ts-loader-D82aqK3A.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "permissions": [
+    "downloads",
+    "offscreen",
+    "clipboardWrite"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
+    "sandbox": "sandbox allow-scripts; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' data: blob:;"
+  },
+  "sandbox": {
+    "pages": [
+      "src/sandbox/sandbox.html"
+    ]
+  },
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "resources": [
+        "imgly/*",
+        "ort/*",
+        "assets/protocol-BOsmsaID.js",
+        "assets/main.ts-DGeIctxi.js"
+      ],
+      "use_dynamic_url": false
+    }
+  ]
+}

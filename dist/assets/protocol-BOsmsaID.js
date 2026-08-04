@@ -1,0 +1,1 @@
+var e=`rightweak-job`;export{e as t};
