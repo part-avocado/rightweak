@@ -16,7 +16,7 @@
   "content_scripts": [
     {
       "js": [
-        "assets/main.ts-loader-Bz3G2u4x.js"
+        "assets/main.ts-loader-MSf3FKNz.js"
       ],
       "matches": [
         "<all_urls>"
@@ -51,7 +51,7 @@
         "imgly/*",
         "ort/*",
         "assets/protocol-BOsmsaID.js",
-        "assets/main.ts-C8WNM7fq.js"
+        "assets/main.ts-Do4Zk8bB.js"
       ],
       "use_dynamic_url": false
     }
