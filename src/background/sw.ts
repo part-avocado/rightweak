@@ -126,7 +126,7 @@ async function convertToPngUrl(buf: ArrayBuffer): Promise<string> {
     const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
     canvas.getContext('2d')!.drawImage(bitmap, 0, 0)
     bitmap.close()
-    const blob = await canvas.convertToBlob({type: 'image/png'})\
+    const blob = await canvas.convertToBlob({type: 'image/png'})
     return `data:image/png;base64, ${bufToBase64(await blob.arrayBuffer())}`
 }
 
