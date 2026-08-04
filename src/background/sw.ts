@@ -179,3 +179,17 @@ function handleOffscreenEvent(ev: OffscreenEvnt): void {
     if (ev.ok) pending.resolve({dataUrl: ev.dataUrl, blobUrl: ev.blobUrl, preview: ev.preview})
     else pending.reject(new Error(ev.error))
 }
+
+async function rasterizeInOffscreen(job: Job, url: string, mime: string | undefined): Promise<string> {
+    job.useOffscreen = true
+    await ensureOffscreen()
+    const result = await OffscreenCall(job, {
+        target: 'offscreen',
+        op: 'topng',
+        jobId: job.id,
+        url,
+        deliver: 'dataUrl',
+    })
+    if (!result.dataUrl) throw new Error(`Unable to decode this image${mime ? `(${mime})` : ''}.`)
+    return result.dataUrl
+}
