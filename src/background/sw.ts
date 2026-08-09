@@ -187,7 +187,7 @@ function bufToBase64(buf: ArrayBuffer): string {
     for (let i = 0; i < bytes.length; i += CHUNK) {
         bin += String.fromCharCode(...bytes.subarray(i, i+CHUNK))
     }
-    return bin
+    return btoa(bin)
 }
 
 function friendlyError(err: unknown): string {
