@@ -38,3 +38,6 @@ In addition, these buttons appear to be very small, which makes it harder to acc
 ## b. name
 rightweak $\sim$ right weak, but the true definition is
 `right (click) tweaks`
+
+## c. to use
+at the present minute, we do not have a chrome extensions page. Please see instructions under the latest release.
