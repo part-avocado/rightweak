@@ -1,8 +1,8 @@
 import { uiRoot, createToast } from './ui'
 let active = false
-
+let teardown: (() => void) | null = null
 export function startInpsector(): void {
-    if (active) return
+    teardown?.()
     active = true
     const sh = uiRoot()
     const wrap = document.createElement('div')
@@ -10,12 +10,13 @@ export function startInpsector(): void {
     wrap.innerHTML = `
     <div class="inspect-box" hidden></div>
     <div class="inspect-tag" hidden></div>
-    <div class="inspect-hint"> Click an element to inspect · Press escape to exit</div>
+    <div class="inspect-hint">Click an element to inspect · Press escape to exit</div>
     `
 
     sh.appendChild(wrap)
     const box = wrap.querySelector('.inspect-box') as HTMLElement
     const tag = wrap.querySelector('.inspect-tag') as HTMLElement
+    const hint = wrap.querySelector('.inspect-hint') as HTMLElement
     const prevCursor = document.documentElement.style.cursor
     document.documentElement.style.cursor = 'crosshair'
 
@@ -46,14 +47,19 @@ export function startInpsector(): void {
         highlight(el && el !== document.documentElement && el !== document.body ? el : null)
     }
 
-    const stop = () => {
-        active = false
-        document.documentElement.style.cursor = prevCursor
+    const detachPicking = () => {
         window.removeEventListener('pointermove', onMove, true)
         window.removeEventListener('pointerdown', onPick, true)
         window.removeEventListener('click', swallow, true)
         window.removeEventListener('contextmenu', swallow, true)
         window.removeEventListener('keydown', onkeydown, true)
+        document.documentElement.style.cursor = prevCursor
+    }
+
+    const cancel = () => {
+        active = false
+        teardown = null
+        detachPicking()
         wrap.remove()
     }
 
@@ -65,17 +71,25 @@ export function startInpsector(): void {
     const onkeydown = (ev: KeyboardEvent) => {
         if (ev.key === 'Escape') {
             swallow(ev)
-            stop()
+            cancel()
         }
     }
 
     const onPick = (ev: PointerEvent) => {
         swallow(ev)
         const el = current
-        stop()
-        if (el) showCard(el, ev.clientX, ev.clientY)
+        active = false
+        detachPicking()
+        hint.remove()
+        if (el) {
+            showCard(el, ev.clientX, ev.clientY, wrap, box, tag)
+        } else {
+            wrap.remove()
+            teardown = null
+        }
     }
 
+    teardown = cancel
     window.addEventListener('pointermove', onMove, true)
     window.addEventListener('pointerdown', onPick, true)
     window.addEventListener('click', swallow, true)
@@ -106,24 +120,22 @@ function selectorFor(el: Element): string {
     return parts.join(' > ')
 }
 
-function showCard(el: Element, x: number, y:number): void {
+function showCard(el: Element, x: number, y:number, highlightWrap: HTMLElement, box: HTMLElement, tag: HTMLElement): void {
     const sh = uiRoot()
-    const rect = el.getBoundingClientRect()
-    const cs = getComputedStyle(el)
-    const selector = selectorFor(el)
-    const fontFamily = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim()
     const wrap = document.createElement('div')
     wrap.className = 'rightweak'
     const card = document.createElement('div')
     card.className = 'inspect-card'
     card.innerHTML = `
     <div class="ic-head">
+        <button class="ic-up" type="button" title="Select parent element">↑</button>
         <span class="ic-title"></span>
         <button class="ic-x" type="button" title="Close">x</button>
     </div>
     <div class="ic-selector" title=""></div>
     <div class="ic-rows">
         <span>Size</span><span class="ic-size"></span>
+        <span>Display</span><span class="ic-display"></span>
         <span>Font</span><span class="ic-font"></span>
         <span>Color</span><span><i class="ic-swatch ic-c1"></i><span class="ic-color"></span></span>
         <span>Background</span><span><i class="ic-swatch ic-c2"></i><span class="ic-bg"></span></span>
@@ -138,24 +150,44 @@ function showCard(el: Element, x: number, y:number): void {
     sh.appendChild(wrap)
 
     const q = (sel: string) => card.querySelector(sel) as HTMLElement
-    q('.ic-title').textContent = `<${el.tagName.toLowerCase()}`
-    q('.ic-selector').textContent = selector
-    q('.ic-selector').title = selector
-    q('.ic-size').textContent = `${Math.round(rect.width)} x ${Math.round(rect.height)} px`
-    q('.ic-font').textContent = `${fontFamily} · ${cs.fontSize}`
-    q('.ic-color').textContent = cs.color
-    q('.ic-bg').textContent = cs.backgroundColor
-    q('.ic-c1').style.background = cs.color
-    q('.ic-c2').style.background = cs.backgroundColor
+    let target = el
+    let selector = selectorFor(target)
 
+    const render = () => {
+        const rect = target.getBoundingClientRect()
+        const cs = getComputedStyle(target)
+        selector = selectorFor(target)
+        const fontFamily = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim()
+        q('.ic-title').textContent = `<${target.tagName.toLowerCase()}>`
+        q('.ic-selector').textContent = selector
+        q('.ic-selector').title = selector
+        q('.ic-size').textContent = `${Math.round(rect.width)} x ${Math.round(rect.height)} px`
+        q('.ic-display').textContent = cs.display
+        q('.ic-font').textContent = `${fontFamily} @ ${cs.fontSize}`
+        q('.ic-color').textContent = cs.color
+        q('.ic-bg').textContent = cs.backgroundColor
+        q('.ic-c1').style.background = cs.color
+        q('.ic-c2').style.background = cs.backgroundColor
+
+        box.hidden = tag.hidden = false
+        box.style.cssText = `left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px`
+        tag.textContent = `${target.tagName.toLowerCase()} @ ${Math.round(rect.width)}x${Math.round(rect.height)}`
+        tag.style.left = `${Math.max(8, Math.min(rect.left, innerWidth - 260))}px`
+        tag.style.top = rect.top > 34 ? `${rect.top - 28}px` : `${rect.bottom + 6}px`
+    }
+    render()
     const PAD = 12
-    card.style.left = `${Math.max(PAD, Math.min(x, innerWidth - card.offsetWidth - PAD))}px`
-    card.style.top = `${Math.max(PAD, Math.min(y+10, innerHeight - card.offsetHeight))}px`
-
+    const place = () => {
+        card.style.left = `${Math.max(PAD, Math.min(x, innerWidth - card.offsetWidth - PAD))}px`
+        card.style.top = `${Math.max(PAD, Math.min(y+10, innerHeight - card.offsetHeight))}px`
+    }
+    place()
     const close = () => {
         window.removeEventListener('keydown', onKey, true)
         wrap.remove()
+        teardown = null
     }
+    teardown = close
 
     const onKey = (ev: KeyboardEvent) => {
         if (ev.key === "Escape") {
@@ -167,6 +199,13 @@ function showCard(el: Element, x: number, y:number): void {
     window.addEventListener('keydown', onKey, true)
 
     q('.ic-x').addEventListener('click', close)
+    q('.ic-up').addEventListener('click', () => {
+        const parent = target.parentElement
+        if (!parent || parent === document.body || parent === document.documentElement) return
+        target = parent
+        render()
+        place()
+    })
     q('.ic-copy-sel').addEventListener('click', () => {
         void navigator.clipboard.writeText(selector).then(
             () => {
@@ -177,7 +216,7 @@ function showCard(el: Element, x: number, y:number): void {
         )
     })
     q('.ic-copy-html').addEventListener('click', () => {
-        void navigator.clipboard.writeText((el as HTMLElement).outerHTML).then(
+        void navigator.clipboard.writeText((target as HTMLElement).outerHTML).then(
             () => {
                 close()
                 createToast('Inspect').success('Element HTML copied.')

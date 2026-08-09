@@ -30,14 +30,14 @@ function oncontextmenu(e: MouseEvent): void {
     if (media instanceof HTMLImageElement) {
         showMenu(e.clientX, e.clientY, {
             entries: iamageEntries(media),
-            more: mediaMoreEntries(link, imageMoreExtras(media)),
+            more: mediaMoreEntries(link, e.target as Element | null, imageMoreExtras(media)),
             hint: hint_more,
             expandedHint: hint_expand,
         })
     } else if (media instanceof HTMLVideoElement) {
         showMenu(e.clientX, e.clientY, {
             entries: videoEntries(media),
-            more: mediaMoreEntries(link, videoMoreExtras(media)),
+            more: mediaMoreEntries(link, e.target as Element | null, videoMoreExtras(media)),
             hint: hint_more,
             expandedHint: hint_expand,
         })
@@ -45,7 +45,7 @@ function oncontextmenu(e: MouseEvent): void {
         showMenu(e.clientX, e.clientY, {
             nav: navButtons(),
             entries: pageEntries(link, selection),
-            more: pageMoreEntries(),
+            more: pageMoreEntries(e.target as Element | null),
             hint: hint_more,
             expandedHint: hint_expand,
         })
@@ -86,15 +86,16 @@ function screenshotGroup(): MenuEntry[] {
     ]
 }
 
-function pageMoreEntries(): MenuEntry[] {
+function pageMoreEntries(target: Element | null): MenuEntry[] {
     const cleaned = cleanUrl(location.href)
+    const scrollEl = findScrollable(target)
     return [
         {icon: ICONS.markdown, label: 'Copy as Markdown link', sublabel: `[${truncate(document.title, 24)}](...)`, onClick: () => copyText(`[${document.title}](${location.href})`, 'Markdown link copied')},
         {icon: ICONS.clean, label: 'Copy clean link', sublabel: cleaned !== location.href ? truncate(cleaned, 44) : 'All clean', onClick: () => copyText(cleaned, 'Clean link copied')},
         'divider',
         {pair: [
-            {icon: ICONS.toTop, label: 'Scroll to top', onClick: () => window.scrollTo({ top:0, behavior: 'smooth'})},
-            {icon: ICONS.toBottom, label: 'Scroll to bottom', onClick: () => window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth'})},
+            {icon: ICONS.toTop, label: 'Scroll to top', onClick: () => scrollEl.scrollTo({ top:0, behavior: 'smooth'})},
+            {icon: ICONS.toBottom, label: 'Scroll to bottom', onClick: () => scrollEl.scrollTo({top: scrollEl.scrollHeight, behavior: 'smooth'})},
         ]},
         {icon: ICONS.inspect, label: 'Inspect element', sublabel: 'Hover, click, or copy selector or HTML', onClick: () => startInpsector()},
         {icon: ICONS.hardReload, label: 'Reset cache and reload', onClick: () => void chrome.runtime.sendMessage({type: 'reload-hard'})},
@@ -113,7 +114,19 @@ function cleanUrl(href: string): string {
     } catch {
         return href
     }
-}        
+}
+
+function findScrollable(start:Element | null): HTMLElement {
+    let el: Element | null = start
+    while (el && el !== document.body && el !== document.documentElement) {
+        if (el instanceof HTMLElement) {
+            const cs = getComputedStyle(el)
+            if (/(auto|scroll)/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 4) return el
+        }
+        el = el.parentElement
+    }
+    return (document.scrollingElement as HTMLElement) ?? document.documentElement
+}
 
 function pageEntries(link: HTMLAnchorElement | null, selection: string): MenuEntry[] {
     const entries: MenuEntry[] = []
@@ -131,12 +144,12 @@ function pageEntries(link: HTMLAnchorElement | null, selection: string): MenuEnt
     return entries
 }
 
-function mediaMoreEntries(link: HTMLAnchorElement | null, extras: MenuEntry[] = []): MenuEntry[] {
+function mediaMoreEntries(link: HTMLAnchorElement | null, target: Element | null, extras: MenuEntry[] = []): MenuEntry[] {
     return [
         ...(extras.length ? [...extras, 'divider' as const] : []),
         ...(link ? [...linkGroup(link), 'divider' as const] : []),
         ...pageCopyGroup(),
-        ...pageMoreEntries(),
+        ...pageMoreEntries(target),
         'divider',
         ...screenshotGroup(),
     ]
