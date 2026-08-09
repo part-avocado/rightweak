@@ -184,6 +184,7 @@ function showCard(el: Element, x: number, y:number, highlightWrap: HTMLElement, 
     place()
     const close = () => {
         window.removeEventListener('keydown', onKey, true)
+        highlightWrap.remove()
         wrap.remove()
         teardown = null
     }
