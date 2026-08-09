@@ -3,7 +3,7 @@ import {defineManifest} from '@crxjs/vite-plugin'
 export default defineManifest({
     name: "rightweak",
     manifest_version: 3,
-    version: '1.1.0',
+    version: '1.1.1',
     description: 'A Chrome extension that commandeers the right-click context menu for additional user friendliness.',
     icons: {
         16: 'icons/icon16.png',

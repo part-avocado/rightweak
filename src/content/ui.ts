@@ -421,7 +421,7 @@ export function createToast(title: string, onCancel?: () => void): ToastHandle {
     }
     
     const stacklimiter = stack()
-    while (stacklimiter.children.length >= 3) shadow?.firstElementChild?.remove()
+    while (stacklimiter.children.length >= 3) stacklimiter.firstElementChild?.remove()
     stacklimiter.appendChild(el)
 
     return {

@@ -3,6 +3,7 @@ import type { JobRequest, PortMessageFrom,PortMessageTo } from '../shared/protoc
 import { showMenu, closeMenu, createToast, ICONS, magic_icons } from './ui'
 import type { MenuEntry, NavButton, ToastHandle } from './ui'
 import {startInpsector} from './inspect'
+import { createFilter } from 'vite'
 
 const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
 const hint_more = 'Hold Shift for advanced options'
@@ -66,10 +67,16 @@ function navButtons(): NavButton[] {
     ]
 }
 
+function openTab(url: string): void {
+    chrome.runtime.sendMessage({type: 'open-tab', url}).catch(() => {
+        createToast('Open link').error('Could not open the link. Try reloading the extension.')
+    })
+}
+
 function linkGroup(link: HTMLAnchorElement): MenuEntry[] {
     const text = (link.textContent ?? '').trim().replace(/\s+/g, ' ')
     return [
-        {icon: ICONS.newTab, label: 'Open link in new tab', onClick: () => void chrome.runtime.sendMessage({type: "open-tab", url: link.href})},
+        {icon: ICONS.newTab, label: 'Open link in new tab', onClick: () => openTab(link.href)},
         {icon: ICONS.link, label: "Copy link address", sublabel: link.href, onClick: () => copyText(link.href, 'Link address copied')},
         ...(text ? [{icon: ICONS.text, label: 'Copy link text', sublabel: `"${truncate(text,40)}"`, onClick: () => copyText(text, 'Link text copied')} satisfies MenuEntry] : [])
     ]
@@ -101,7 +108,11 @@ function pageMoreEntries(target: Element | null): MenuEntry[] {
             {icon: ICONS.toBottom, label: 'Scroll to bottom', onClick: () => scrollEl.scrollTo({top: scrollEl.scrollHeight, behavior: 'smooth'})},
         ]},
         {icon: ICONS.inspect, label: 'Inspect element', sublabel: 'Hover, click, or copy selector or HTML', onClick: () => startInpsector()},
-        {icon: ICONS.hardReload, label: 'Reset cache and reload', onClick: () => void chrome.runtime.sendMessage({type: 'reload-hard'})},
+        {icon: ICONS.hardReload, label: 'Reset cache and reload', onClick: () => {
+            chrome.runtime.sendMessage({type: 'reload-hard'}).catch(() => {
+                createToast('Reload').error('Could not reach the extension. Try reloading it from chrome://extensions.')
+            })
+        }},
         {icon: ICONS.print, label: 'Print page', onClick: () => window.print()},
     ]
 }
@@ -137,8 +148,7 @@ function pageEntries(link: HTMLAnchorElement | null, selection: string): MenuEnt
     if (selection) {
         entries.push(
             {icon: ICONS.copy, label: 'Copy', sublabel: `"${truncate(selection, 40)}"`, onClick: () => copyText(selection, 'Copied to clipboard')},
-            {icon: ICONS.search, label: 'Search with Google', sublabel: `"${truncate(selection, 40)}"`, onClick: () => void chrome.runtime.sendMessage({type: 'open-tab', url: `https://www.google.com/search?q=${encodeURIComponent(selection)}`,})
-        },
+            {icon: ICONS.search, label: 'Search with Google', sublabel: `"${truncate(selection, 40)}"`, onClick: () => openTab(`https://www.google.com/search?q=${encodeURIComponent(selection)}`)},
         'divider',
     )
     }
@@ -162,7 +172,7 @@ function imageMoreExtras(img: HTMLImageElement): MenuEntry[] {
     const url = img.currentSrc || img.src
     if (!/^https?:/.test(url)) return []
     return [
-        {icon: ICONS.lens, label: 'Search image with Google Lens', onClick: () => void chrome.runtime.sendMessage({type: 'open-tab', url: `https://lens.google.com/uploadbyurl?url=${encodeURIComponent(url)}`})}
+        {icon: ICONS.lens, label: 'Search image with Google Lens', onClick: () => openTab(`https://lens.google.com/uploadbyurl?url=${encodeURIComponent(url)}`)}
     ]
 }
 
@@ -222,7 +232,7 @@ function iamageEntries(img: HTMLImageElement): MenuEntry[] {
         'divider',
         {
             pair: [
-                {icon: ICONS.newTab, label: 'Open image in new tab', disabled: !httpUrl, onClick: () => void chrome.runtime.sendMessage({type: 'open-tab', url: httpUrl})},
+                {icon: ICONS.newTab, label: 'Open image in new tab', disabled: !httpUrl, onClick: () => openTab(httpUrl!)},
                 {icon: ICONS.link, label: 'Copy image link', disabled: !httpUrl, onClick: () => copyText(httpUrl!, 'Image link copied')}
             ]
         },
@@ -276,7 +286,7 @@ function videoEntries(video: HTMLVideoElement): MenuEntry[] {
         'divider',
         {
             pair: [
-                {icon: ICONS.newTab, label: 'Open video in new tab', disabled: !downloadble, onClick: () => void chrome.runtime.sendMessage({ type: 'open-tab', url:src})},
+                {icon: ICONS.newTab, label: 'Open video in new tab', disabled: !downloadble, onClick: () => openTab(src!)},
                 {icon: ICONS.link, label: 'Copy video link', disabled: !downloadble, onClick: () => copyText(src!, 'Video link copied')}
             ]
         }
