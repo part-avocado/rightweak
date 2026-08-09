@@ -360,7 +360,7 @@ function saveFlow(job: JobRequest, title:string): void {
         .then(({preview}) => toast.success('Download started', preview))
         .catch((err: Error) => {
             if (err.message === 'cancelled') toast.close()
-            else toast.error(err.message)
+            else toast.error(err.message, () => saveFlow(job,title))
         })
 }
 
@@ -385,7 +385,7 @@ async function copyFlow(job: JobRequest, title:string): Promise<void> {
         } catch (err) {
             const msg = (err as Error).message
             if (msg === 'cancelled') toast.close()
-            else toast.error(msg)
+            else toast.error(msg, () => copyFlow(job, title))
             return
         }
 
@@ -406,8 +406,8 @@ function copyText(text: string, successMessage:string): void {
     navigator.clipboard
         .writeText(text)
         .then(() => toast.success(successMessage))
-        .catch((err: Error) => toast.error(`Copy failed. ${err.message}`))
-}
+        .catch((err: Error) => toast.error(`Copy failed. ${err.message}`, () => copyText(text, successMessage)))
+    }
 
 // helping tools
 async function resolveImageUrl(img: HTMLImageElement): Promise<string> {

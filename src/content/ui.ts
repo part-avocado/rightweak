@@ -352,7 +352,7 @@ function stack(): HTMLDivElement {
 export interface ToastHandle {
     setStage(stage: string, ratio?: number): void
     success(messge:string, previewUrl?: string): void
-    error(message: string): void
+    error(message: string, retry?: () => void): void
     action(message:string, buttonLabel:string, cb: () => void): void
     close(): void
 }
@@ -410,8 +410,10 @@ export function createToast(title: string, onCancel?: () => void): ToastHandle {
         xBtn.title = 'Dismiss'
         if (autoClose) autoCloseTimer = window.setTimeout(close, autoClose)
     }
-
-    stack().appendChild(el)
+    
+    const stacklimiter = stack()
+    while (stacklimiter.children.length >= 3) shadow?.firstElementChild?.remove()
+    stacklimiter.appendChild(el)
 
     return {
         setStage(stage, ratio) {
@@ -432,8 +434,20 @@ export function createToast(title: string, onCancel?: () => void): ToastHandle {
             }
             finish('success', svg_ok, message, previewUrl ? 5000 : 3200)
         },
-        error(message) {
+        error(message, retry) {
             finish('error', svg_err, message)
+            if (retry) {
+                actionsEl.hidden = false
+                actionsEl.innerHTML = ''
+                const btn = document.createElement('button')
+                btn.className = 'toast-btn'
+                btn.textContent = 'Try again'
+                btn.addEventListener('click', () => {
+                    actionsEl.hidden = true
+                    retry()
+                })
+                actionsEl.appendChild(btn)
+            }
         },
         action(message, buttonLabel, cb) {
             terminal = true
