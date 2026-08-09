@@ -101,6 +101,7 @@ export interface MenuOptions {
     more?: MenuEntry[]
     hint?: string
     expandedHint?: string
+    startExpanded?: boolean
 }
 
 let openMenuCleanup: (() => void) | null = null
@@ -267,6 +268,9 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
         if (hintEl && options.hint) setHint(hintEl, options.hint)
         clamp()
     }
+    if(options.startExpanded) expand()
+    let suppressNextCollapse = !!options.startExpanded
+
     const focusables = (): HTMLButtonElement[] =>
         [...menu.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')]
 
@@ -304,7 +308,12 @@ export function showMenu(x:number, y:number, options:MenuOptions): void {
         }
     }
     const onKeyUp = (ev: KeyboardEvent) => {
-        if (ev.key === 'Shift') collapse()
+        if (ev.key !== 'Shift') return
+        if  (suppressNextCollapse) {
+            suppressNextCollapse = false
+            return
+        }
+        collapse()
     }
 
     const blockScroll = (ev: Event) => {

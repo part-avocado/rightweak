@@ -4,13 +4,13 @@ import { showMenu, closeMenu, createToast, ICONS, magic_icons } from './ui'
 import type { MenuEntry, NavButton, ToastHandle } from './ui'
 import {startInpsector} from './inspect'
 
-const hint_more = 'Hold Shift for more options'
-const hint_expand = 'Shift + right-click forces default menu'
-
+const isMac = /Mac|iPod|iPhone|iPad/.test(navigator.userAgent)
+const hint_more = 'Hold Shift for advanced options'
+const hint_expand = isMac? 'Cmd + right-click for default menu' : 'Ctrl + right-click for default menu'
 window.addEventListener('contextmenu', oncontextmenu, true)
 
 function oncontextmenu(e: MouseEvent): void {
-    if (e.shiftKey) return
+    if (e.ctrlKey || e.metaKey) return
     const path = e.composedPath()
     for (const node of path) {
         if (node instanceof HTMLElement) {
@@ -33,6 +33,7 @@ function oncontextmenu(e: MouseEvent): void {
             more: mediaMoreEntries(link, e.target as Element | null, imageMoreExtras(media)),
             hint: hint_more,
             expandedHint: hint_expand,
+            startExpanded: e.shiftKey,
         })
     } else if (media instanceof HTMLVideoElement) {
         showMenu(e.clientX, e.clientY, {
@@ -40,6 +41,7 @@ function oncontextmenu(e: MouseEvent): void {
             more: mediaMoreEntries(link, e.target as Element | null, videoMoreExtras(media)),
             hint: hint_more,
             expandedHint: hint_expand,
+            startExpanded: e.shiftKey,
         })
     } else {
         showMenu(e.clientX, e.clientY, {
@@ -48,6 +50,7 @@ function oncontextmenu(e: MouseEvent): void {
             more: pageMoreEntries(e.target as Element | null),
             hint: hint_more,
             expandedHint: hint_expand,
+            startExpanded: e.shiftKey,
         })
     }
 }
