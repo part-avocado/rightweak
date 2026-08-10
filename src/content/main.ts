@@ -467,7 +467,7 @@ function filenameFrom(url:string, fallback: string): string {
     } catch {
         return fallback
     }
-}
+} 
 
 function dataUrltoBlob(dataUrl: string): Blob {
     const [head, body] = dataUrl.split(',')
