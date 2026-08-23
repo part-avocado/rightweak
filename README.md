@@ -2,6 +2,8 @@
 [![CI](https://github.com/part-avocado/rightweak/actions/workflows/ci.yaml/badge.svg)](https://github.com/part-avocado/rightweak/actions/workflows/ci.yaml) 
 [![Bob the Builder](https://github.com/part-avocado/rightweak/actions/workflows/bobthebuilder.yaml/badge.svg)](https://github.com/part-avocado/rightweak/actions/workflows/bobthebuilder.yaml)
 
+This was built for Hack Club's braize program.
+
 ## a. purpose
 when you load up your favourite version of [chromium](https://www.chromium.org/chromium-projects/) and its dependent projects (including, but not limited to: dia, brave, opera (suite), microsoft edge, vivalidi, arc, ungoogled-chromium, epic privacy browser, srware iron, samsung internet, naver whale, coc coc, yandex, and much more), and you dare use the right click button to perform special tasks, you will be greeted with a visually unfriendly and unsightly menu bar, which is barely functional. (See Figure 1.)
 
